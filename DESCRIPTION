@@ -1,10 +1,16 @@
 Package: diffsig
-Title: What the Package Does (One Line, Title Case)
+Title: Difference Test on Mutational Signatures in Risk Factors with Hierarchical Bayesian Modeling
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+    c(person("Ji-Eun", "Park",email= "jieunprk@gmail.com", role = c("aut", "cre")),
+      person("Markia", "Smith", role = "aut"),
+      person("Sarah", "Van Alsten", role = "aut"),
+      person("Andrea", "Walens", role = "aut"),
+      person("Di", "Wu", role = "aut"),
+      person("Melissa", "Troester", role = "aut"),
+      person("Katherin", "Hoadley", role = "aut"),
+      person("Michael", "Love", role = "aut"))
+Description: diffsig allows to test the difference in association between mutational signatures and risk factors based on hierarchical Bayesian Dirichlet-Multinomial modeling.
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8

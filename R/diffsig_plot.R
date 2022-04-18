@@ -4,7 +4,6 @@
 #' @param fit stan fit object from diffsig_stan
 #' @param pars parameters to plot
 #' @param rowlabels labels for betas in diffsig plot
-#' @param beta_sd standard deviation for sampling hyperparameter beta
 #' @param ... Arguments passed to ggplot
 #' @return Diffsig plot
 #'
