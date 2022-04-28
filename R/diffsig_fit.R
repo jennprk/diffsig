@@ -9,9 +9,14 @@
 #' @return An object of class `stanfit` returned by `rstan::stan`
 #'
 diffsig_fit <- function(x, y, C, beta_sd, pars=c('beta'), include = T, ...) {
+  start = Sys.time()
   standata <- list(X = x, Y = y, C = C, beta_sd = beta_sd,
                    M = nrow(X), L = nrow(C), K = ncol(C), N = ncol(y))
   out <- rstan::sampling(stanmodels$stan_model, data = standata,
                          pars = pars, include = include, ...)
+  end = Sys.time()
+  total_time = difftime(end,start,units="mins")
+  print(total_time)
+
   return(out)
 }
