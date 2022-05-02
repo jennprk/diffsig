@@ -11,23 +11,31 @@ diffsig_plot <- function(fit, pars="beta", rowlabels=NULL, font=NULL) {
   require(rstan)
   require(ggplotify)
 
-  p <- stan_plot(fit=fit,pars=pars, fill_color="#0C7BDC", outline_color="black", est_color="#FFC20A")
-  p <- p  +
-    scale_x_continuous(breaks=c(layer_scales(p)$x$range$range[1], 0, layer_scales(p)$x$range$range[2]),
+  p <- stan_plot(fit,pars=pars, fill_color="#0C7BDC", outline_color="black", est_color="#FFC20A")
+  p <- p +
+    theme(legend.position="bottom",
+          legend.direction="horizontal",
+          legend.background = element_rect(size=0.5, linetype="solid", colour ="black"),
+          legend.text = element_text(size=16,face = "plain"),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(),
+          axis.line = element_line(colour = "black"),
+          legend.title = element_blank(),
+          axis.title.y=element_blank()) +
+    scale_x_continuous(breaks = c(layer_scales(p0)$x$range$range[1],0,layer_scales(p0)$x$range$range[2]),
                        labels = c("Less Common","0","More Common")) +
-    ## Add arrow and leave only 0 in x-axis
     theme(axis.ticks.x = element_blank(),
           axis.line.x = element_line(arrow = grid::arrow(length = unit(0.3, "cm"),
                                                          ends = "both")),
           axis.title.x = element_text(angle = 0),
           axis.text.x = element_text(size="3cm"),
+          panel.grid.major.x = element_line(),
           plot.margin = margin(t = 5,  # Top margin
                                r = 30,  # Right margin
                                b = 5,  # Bottom margin
                                l = 5)) +
-    labs(x = NULL)  +
-    theme(text=element_text(size=16,  family=font, face = "plain"),
-          axis.text.y = element_text(size=15,  family=font, face = "bold"))
+    labs(x = NULL)
 
   pp = ggplot_build(p)
   ## re-label y-axis with names
