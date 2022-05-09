@@ -5,18 +5,20 @@
 #' @param y mutational count matrix (LxN)
 #' @param C muational signature matrix (LxK)
 #' @param beta_sd standard deviation for sampling hyperparameter beta
+#' @param pars desired parameters from `stanfit` to save. Default is "beta" (pars="beta"), but can also include parameters such as "tau".
 #' @param ... Arguments passed to `rstan::stan` (e.g. thin, init, ...).
-#' @return An list of a object of class `stanfit` returned by `rstan::stan` and the total computation time
+#' @return An object of class `stanfit` returned by `rstan::stan`
 #'
 diffsig_fit <- function(x, y, C, beta_sd, pars=c('beta'), include = T, ...) {
-  start = Sys.time()
+  # start = Sys.time()
   standata <- list(X = x, Y = y, C = C, beta_sd = beta_sd,
                    M = nrow(X), L = nrow(C), K = ncol(C), N = ncol(y))
   out <- rstan::sampling(stanmodels$stan_model, data = standata,
                          pars = pars, include = include, ...)
-  end = Sys.time()
-  total_time = difftime(end,start,units="mins")
-  print(total_time)
+  # end = Sys.time()
+  # total_time = difftime(end,start,units="mins")
+  # print(total_time)
 
-  return(list(out,total_time))
+  # return(list(out,total_time))
+  return(out)
 }
