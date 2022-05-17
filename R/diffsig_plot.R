@@ -11,7 +11,6 @@
 #'
 diffsig_plot <- function(fit, pars, rowlabels, rowgroup=NULL, est_color=NULL, colors=NULL) {
   require(rstan, quietly = T)
-  # require(ggplotify)
   require(viridis, quietly = T)
 
   statmat <- summary(fit)$summary[,c("mean","2.5%", "25%", "50%", "75%", "97.5%")]
@@ -39,7 +38,9 @@ diffsig_plot <- function(fit, pars, rowlabels, rowgroup=NULL, est_color=NULL, co
   if(is.null(rowgroup)) {
     if(length(colors)!=1) {
       stop("If no rowgroup is provided, only one color should be specified or use default.")
-    } if(is.null(colors)) {
+    }
+
+    if(is.null(colors)) {
       color_by <- "#0C7BDC"
     }
 
@@ -48,7 +49,6 @@ diffsig_plot <- function(fit, pars, rowlabels, rowgroup=NULL, est_color=NULL, co
     p.all <- p.all + p.ci.2 +
       xlab("beta") +
       theme(axis.title.y=element_blank())
-    }
   } else {
     color_by <- "statmat$group"
 
@@ -72,6 +72,7 @@ diffsig_plot <- function(fit, pars, rowlabels, rowgroup=NULL, est_color=NULL, co
         xlab("beta") +
         theme(axis.title.y=element_blank())
     }
+  }
 
   p <- p.all + geom_vline(xintercept=0, linetype="dashed",color="darkgrey") + p.point
 
