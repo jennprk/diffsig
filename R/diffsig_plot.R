@@ -72,7 +72,6 @@ diffsig_plot <- function(fit, pars, rowlabels, rowgroup=NULL, est_color=NULL, co
         xlab("beta") +
         theme(axis.title.y=element_blank())
     }
-  }
 
   p <- p.all + geom_vline(xintercept=0, linetype="dashed",color="darkgrey") + p.point
 
