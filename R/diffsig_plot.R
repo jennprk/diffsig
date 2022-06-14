@@ -27,7 +27,7 @@ diffsig_plot <- function(fit, pars, rowlabels, rowgroup=NULL, est_color=NULL, co
   p.name <- ggplot2::scale_y_continuous(breaks = y, labels = rowlabels,
                                         limits = c(0.8, max(y) + 0.2))
   p.all <- p.base + ggplot2::xlim(xlim.use) + p.name + geom_vline(xintercept=0, linetype="dashed",color="darkgrey") +
-    theme_ipsum()
+    theme_bw()
 
   p.ci <- ggplot2::geom_segment(mapping = ggplot2::aes_string(x = "ll", xend = "hh", y = "y", yend = "y"))
   p.all <- p.all + p.ci
@@ -90,17 +90,19 @@ diffsig_plot <- function(fit, pars, rowlabels, rowgroup=NULL, est_color=NULL, co
    # scale_x_continuous(breaks = c(layer_scales(p)$x$range$range[1],ggbld$layout$panel_params[[1]]$x.sec$breaks,layer_scales(p)$x$range$range[2]),
                        # labels = c("Less Common",ggbld$layout$panel_params[[1]]$x.sec$breaks,"More Common")) +
     theme(axis.ticks.x = element_blank(),
+          axis.ticks.y = element_blank(),
           axis.line.x = element_line(arrow = grid::arrow(length = unit(0.3, "cm"),
                                                          ends = "both"), color="grey27"),
-          axis.title.x = element_text(angle = 0, margin=margin(-5,0,0,0)),
+          axis.title.x = element_text(angle = 0, hjust=1,margin = margin(t = -2, r = 0, b = 0, l = 0)),
           axis.text.x = element_text(size="10"),
           panel.grid.major.x = element_line(),
           plot.margin = margin(t = 5,  # Top margin
                                r = 30,  # Right margin
                                b = 5,  # Bottom margin
                                l = 5),
-          legend.margin = margin(t=-15),
-          legend.spacing.x = unit(0.1, 'cm')) +
+          panel.border = element_blank(),
+          legend.margin = margin(t=-15))+
+          # legend.spacing.x = unit(0.1, 'cm')) +
       guides(colour = guide_legend(ncol = 3))
     )
 

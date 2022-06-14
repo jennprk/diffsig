@@ -1,0 +1,177 @@
+---
+title: "Diffsig - "
+date: "`r format(Sys.Date(), '%m/%d/%Y')`"
+author: "Ji-Eun Park, Michael Love"
+output: 
+  rmarkdown::html_document:
+    self_contained: false
+    highlight: pygments
+abstract: |
+  Diffsig provides estimation of the associations between mutational signatures
+  and risk factors to help better understand the cancer development process. 
+  Diffsig generates the associations using a hierarchical Bayesian
+  Dirichlet-Multinomial model with a set of mutational signatures, mutation 
+  counts, and risk factors. Diffsig can test posterior estimates of the 
+  associations with any type of discrete or continuous risk factors of interest
+  while considering the possible variance derived by datasets sequenced with 
+  various read depth.
+  Diffsig package version: `r packageVersion("diffsig")`
+bibliography: library.bib
+vignette: |
+  %\VignetteIndexEntry{Diffsig - estimation of association of risk factors and 
+  mutational signatures}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, echo=FALSE, results="hide"}
+knitr::opts_chunk$set(cache=FALSE, message=FALSE, warning=FALSE)
+```
+
+# Introduction
+
+*Diffsig* provides Bayesian analysis of the association between risk
+factors and mutational signatures, making use of the Stan and RStan
+software packages for inference [@stan; @rstan].
+
+The authors of the associated [Diffsig manuscript]() [@diffsig] are:
+
+> Ji-Eun Park\*, Markia Smith, Sarah Van Alsten, Andrea Walens, Di Wu,
+> Katherine Hoadley, Melissa Troester, Michael I. Love
+
+# Data simulation
+
+The purpose of this vignette is to demonstrate the steps of *Diffsig*.
+For that, in this vignette, we work on simulated mutational counts and
+risk factors instead of real datasets. The simulation process does not
+include steps of generating mutational count matrix from .vcf or .maf
+files. Details for the count matrix generating process could be found in
+the manuscript [public data preprocess]().
+
+A number of parameters need to be set to generate a simulated dataset:
++ `N`: number of samples (integer) 
++ `K`: number of signatures (integer) 
++ `truetau`: true value of tau (numeric) 
++ `C_K`: signature matrix (96xK matrix)
+
+In our analysis, we used the COSMIC V3.2 signatures loaded from
+[COSMIC](https://cancer.sanger.ac.uk/signatures/sbs/) where we selected 5 signatures that are known to be associated with breast cancer to avoid selecting an arbitrary set of signatures. If you have your own signature matrix, you can load your signature matrix object named as `C_K`. 
+
+```{r}
+N = 50
+K = 5
+truetau = 100
+C = read.table("https://cancer.sanger.ac.uk/signatures/documents/453/COSMIC_v3.2_SBS_GRCh38.txt", header = T, row.names = 1)
+C_K =  C[,c("SBS2","SBS3","SBS5","SBS8","SBS13")]
+```
+
+Now, there are some additional parameters that should be set depending
+on the types of risk factors to be included:
+
+-   continuous: number of continuous variables (default `NULL`)
+-   binary: number of binary variables (default `NULL`)
+-   categorical: number of categorical variables (default `NULL`)
+-   cat_levels: vector of number of levels for each categorical
+    variables (default `NULL`)
+
+So, for example, if you would like to include 2 continuous variable, you
+would do:
+
+```{r}
+simdat = simdat_gen(N=N, K=K, truetau=truetau, C=C_K,
+           continuous=2, binary=NA, categorical=NA, cat_levels=NA)
+```
+
+Or, if you want to include 1 binary and 2 categorical variable with 3
+and 4 levels:
+
+```{r, eval=F}
+simdat = simdat_gen(N=N, K=K, truetau=truetau, C=C, 
+           continuous=NA, binary=1, categorical=2, cat_levels=c(3,4))
+```
+
+Note that `continuous`, `binary`, `categorical`, `cat_levels` are set to
+`NULL` as default. Therefore, you do not need to specify anything for
+variables you wish not to include.
+
+```{r, eval=F}
+# Same as the above examples
+simdat_gen(N=N, K=K, truetau=truetau, C=C, continuous=2)
+simdat_gen(N=N, K=K, truetau=truetau, C=C, binary=1, categorical=2, cat_levels=c(3,4))
+```
+
+The `simdat` object includes the three components: true association `beta`,
+mutational counts `Y`, and risk factor matrix `X`. 
+
+```{r}
+head(simdat$truebeta)
+```
+
+```{r}
+head(simdat$Y)
+```
+
+```{r}
+head(simdat$X)
+```
+
+# Association estimation 
+
+Once we obtain the mutation counts `Y`, risk factors `X`, and mutational signatures matrix `C`/`C_K`, we can estimate the association between risk factors and mutational signatures using the function `diffsig_fit`.
+
+```{r}
+fit <- diffsig_fit(X=simdat$X, Y=simdat$Y, C=C_K, beta_sd=0.5,
+                   chains=4, cores=4)
+```
+
+This runs the hierarchical Bayesian model that yields the posterior estimation of the associations between the risk factors and mutational signature `beta`. In our analysis, we use 4 chains and 4 cores with 2000 iterations.
+
+Depending on your interest, sample-signature association from Dirichlet sampling `phi` and the precision parameter `tau` could be extracted from the model by including `pars=c("beta","tau","phi")` in `diffsig_fit()`. 
+
+# Convergence examination
+
+In order to check if the model converged, we recommend to check the R-hat convergence measure.[@stan; @rstan] This diagnostic measure shows how well the posterior estimates are converging and mixing in split chains. `rstan` recommends to use samples with R-hat values less than 1.05 and it seems that our simulation has a well-converged result with all R-hats below 1.01. `traceplots` from `rstan` is another common way to check convergence. The `traceplot()` function shows how well the chains are mixing across chains, where a poorly mixed result will show divergence between chains. Traceplots from our simulated data shows a nicely mixed and well-converged result across all 4 chains.
+
+```{r}
+mu_tau_summary <- summary(fit, pars = c("beta"), probs = c(0.1, 0.9))$summary
+data.frame(Rhat =mu_tau_summary[,"Rhat"])
+rstan::traceplot(fit)
+```
+
+Additionally, *Diffsig* provides a function `diffsig_eval` to generate evaluation for simulated data results. The function outputs a list of three objects: summary statistics matrix `estimate` with the desired credible interval width and two measurements `perc_coverage` and `mean_rmse`.
++ `perc_coverage`: percentage of true values belonging within credible interval
++ `mean_rmse`: average RMSE of each estimated `beta` values  
+The width of the credible interval can be specified with `credibleInterval` where in default is set to 80%(`credibleInterval=80`). 
+
+```{r}
+diffsig_eval(truebeta = truebeta, fit = fit, credibleInterval = 80)
+```
+
+It is ideal to have results with coverage greater than 80% or mean RMSE less than 0.1. In our example, we can see that the coverage percentage is only around 27% and mean RMSE around 0.53 which is insufficient to be considered a good estimation. This is due to the sample size being too low (`N=10`).
+
+# Plotting associations
+
+Alternatively, MRLocus can accept colocalization results from eCAVIAR
+[@eCAVIAR] as input to the slope fitting step. eCAVIAR is run with
+default options on each nearly-LD-independent signal cluster separately,
+supplying the LD matrix, and z-scores for study A and B, and `-c 1`,
+i.e. setting the maximum number of causal SNPs to 1.
+
+For eCAVIAR colocalization, the SNP with the largest colocalization
+posterior probability (CLPP) is selected from each signal cluster, among
+those SNPs which are valid instruments, i.e. with an absolute value of
+z-score as large as the value used for PLINK clumping [@plink]. eCAVIAR
+alleles are flipped such that the alternate allele is the one
+corresponding to an increase in the measured phenotype in A (e.g. gene
+expression).
+
+# Session info
+
+```{r}
+sessionInfo()
+```
+
+# References
