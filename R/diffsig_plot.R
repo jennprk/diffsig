@@ -9,12 +9,29 @@
 #' @param ... Arguments passed to ggplot
 #' @return Diffsig plot
 #'
-diffsig_plot <- function(fit, pars, rowlabels, rowgroup=NULL, est_color=NULL, colors=NULL) {
+diffsig_plot <- function(fit, pars, ci_level=80, rowlabels, rowgroup=NULL, est_color=NULL, colors=NULL) {
   require(rstan, quietly = T)
   require(viridis, quietly = T)
 
-  statmat <- summary(fit)$summary[,c("mean","2.5%", "25%", "50%", "75%", "97.5%")]
-  statmat <- as.data.frame(statmat[pars,])
+  if(!is.null(colors)) {
+    if(length(unique(rowgroup))!=length(colors)) {
+      warning("Number of colors does not match the number of unique groups from rowgroup")
+    }
+  }
+
+  if(!is.null(est_color)) {
+    if(length(est_color)!=1) {
+      stop("Only 1 color can be specified for the estimation point est_color")
+    }
+  }
+
+
+
+  ci_low = (100-ci_level)/2/100
+  ci_up = 1-ci_low
+
+  statmat <- summary(fit, probs=c(ci_low,0.25,0.5,0.75,ci_up))$summary[,c("mean","10%", "25%", "50%", "75%", "90%")]
+  statmat <- as.data.frame(statmat[names(fit)[pars],])
   statmat$group <- factor(rowgroup, levels=unique(rowgroup))
 
   y <- as.numeric(seq(length(pars), 1, by = -1))

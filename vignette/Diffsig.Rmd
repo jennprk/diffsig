@@ -82,7 +82,7 @@ would do:
 
 ```{r}
 simdat = simdat_gen(N=N, K=K, truetau=truetau, C=C_K,
-           continuous=2, binary=NA, categorical=NA, cat_levels=NA)
+           continuous=2, binary=NA, categorical=NA, cat_levels=NA, seed=123)
 ```
 
 Or, if you want to include 1 binary and 2 categorical variable with 3
@@ -124,7 +124,7 @@ Once we obtain the mutation counts `Y`, risk factors `X`, and mutational signatu
 
 ```{r}
 fit <- diffsig_fit(X=simdat$X, Y=simdat$Y, C=C_K, beta_sd=0.5,
-                   chains=4, cores=4)
+                   chains=4, cores=4, seed=123)
 ```
 
 This runs the hierarchical Bayesian model that yields the posterior estimation of the associations between the risk factors and mutational signature `beta`. In our analysis, we use 4 chains and 4 cores with 2000 iterations.
@@ -138,7 +138,7 @@ In order to check if the model converged, we recommend to check the R-hat conver
 ```{r}
 mu_tau_summary <- summary(fit, pars = c("beta"), probs = c(0.1, 0.9))$summary
 data.frame(Rhat =mu_tau_summary[,"Rhat"])
-rstan::traceplot(fit)
+rstan::traceplot(fit, pars="beta")
 ```
 
 Additionally, *Diffsig* provides a function `diffsig_eval` to generate evaluation for simulated data results. The function outputs a list of three objects: summary statistics matrix `estimate` with the desired credible interval width and two measurements `perc_coverage` and `mean_rmse`.
@@ -147,26 +147,34 @@ Additionally, *Diffsig* provides a function `diffsig_eval` to generate evaluatio
 The width of the credible interval can be specified with `credibleInterval` where in default is set to 80%(`credibleInterval=80`). 
 
 ```{r}
-diffsig_eval(truebeta = truebeta, fit = fit, credibleInterval = 80)
+(eval_res = diffsig_eval(truebeta = truebeta, fit = fit, ci_level = 80))
 ```
 
-It is ideal to have results with coverage greater than 80% or mean RMSE less than 0.1. In our example, we can see that the coverage percentage is only around 27% and mean RMSE around 0.53 which is insufficient to be considered a good estimation. This is due to the sample size being too low (`N=10`).
+It is ideal to have results with coverage greater than 80% or mean RMSE less than 0.1. In our example, we can see that the coverage percentage is `r round(eval_res$perc_coverage,2)*100`% and mean RMSE around `r round(eval_res$mean_rmse,2)` which means that we acquired a good estimation. Coverage and RMSE can be improved by increasing the sample size which increases the power of the model.
 
 # Plotting associations
 
-Alternatively, MRLocus can accept colocalization results from eCAVIAR
-[@eCAVIAR] as input to the slope fitting step. eCAVIAR is run with
-default options on each nearly-LD-independent signal cluster separately,
-supplying the LD matrix, and z-scores for study A and B, and `-c 1`,
-i.e. setting the maximum number of causal SNPs to 1.
+Once we observe good convergence, we can then interpret the estimations we obtained by plotting the posterior estimates. `diffsig_plot()` is a modified version of the `stan_plot()` function from the `rstan` package which allows to group the segments by groups (or risk factors) for easier visualization. Since each of the estimations are for the `K` signatures and `M` risk factors, the rows are repeatedly labelled with the signatures with `rowlabels` and are colored based on risk factors with `rowgroup`.
 
-For eCAVIAR colocalization, the SNP with the largest colocalization
-posterior probability (CLPP) is selected from each signal cluster, among
-those SNPs which are valid instruments, i.e. with an absolute value of
-z-score as large as the value used for PLINK clumping [@plink]. eCAVIAR
-alleles are flipped such that the alternate allele is the one
-corresponding to an increase in the measured phenotype in A (e.g. gene
-expression).
+```{r}
+diffsig_plot(fit, pars=1:15, ci_level = 80,
+             rowlabels = rep(c("SBS2","SBS3","SBS5","SBS8","SBS13"),3), 
+             rowgroup = rep(c("intercept","cont1","cont2"),each=5))
+```
+Each row shows the estimated association between each signature and risk factor. The circle points represent the point estimations, black lines represent the credible intervals (80% CI in this case), and the colored segments represent the 25% and 75% quantile, respectively.
+
+**FIX THIS PART** Note that.. relativity.. **FIX THIS PART**
+
+The colors for the segments and estimation points can also be tailored based on preference by specifying `colors` and `est_color` parameters.
+
+```{r}
+diffsig_plot(fit, pars=1:15, ci_level = 80,
+             rowlabels = rep(c("SBS2","SBS3","SBS5","SBS8","SBS13"),3), 
+             rowgroup = rep(c("intercept","cont1","cont2"),each=5),
+             colors=c("#D81B60","#1E88E5","#FFC107"),
+             est_color="#F5F3EF") +
+  geom_point(aes(y=15:1,x=simdat$truebeta),shape=3)
+```
 
 # Session info
 

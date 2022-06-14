@@ -8,19 +8,19 @@
 #' @param ... Arguments passed to `rstan::stan` (e.g. thin, init, ...).
 #' @return An object of class `stanfit` returned by `rstan::stan`
 #'
-diffsig_eval <- function(truebeta, fit, credibleInterval=80, include = T, ...) {
+diffsig_eval <- function(truebeta, fit, ci_level=80, include = T, ...) {
 
   if (class(fit)!="stanfit") {
     stop("fit has to be a stanfit object from rstan package")
   }
 
   truebeta = c(t(simdat$truebeta))
-  CI_low = (100-credibleInterval)/2/100
-  CI_up = 1-CI_low
+  ci_low = (100-ci_level)/2/100
+  ci_up = 1-ci_low
 
   estimate= c()
   for (i in 1:length(truebeta)) {
-    estimate= rbind(estimate,summary(fit, pars="beta", probs=c(CI_low,CI_up))$summary[i,c(1,4,5)])
+    estimate= rbind(estimate,summary(fit, pars="beta", probs=c(ci_low,ci_up))$summary[i,c(1,4,5)])
   }
   estimate = as.data.frame(cbind(truebeta,estimate))
   colnames(estimate) = c("truebeta","estimate","min","max")
