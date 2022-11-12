@@ -92,6 +92,7 @@ diffsig_plot <- function(fit, pars, ci_level=80, signature_labels, riskfactor_la
 
     if(is.null(colors)) {
       null_colors = c("#929292","#2484F6","#00AD35","#E84A35","#CA001C","#C50077","#7C00FF")
+      # null_colors = c("#5E5E5E","#0076BA","#00AD35","#E84A35","#CA001C","#C50077","#7C00FF")
       p.all <- p.all +
         p.ci.2 +
         scale_color_manual(values=null_colors[1:length(riskfactor_labels)],name="Risk Factors") +
@@ -143,9 +144,8 @@ diffsig_plot <- function(fit, pars, ci_level=80, signature_labels, riskfactor_la
 
 
 # setwd("/Users/jieun/Downloads/Results2")
-ggsave("tcga_her2_updated.png",width=1200,height=1000,unit="px", dpi = 320)
+# ggsave("tcga_her2_updated.png",width=1200,height=1000,unit="px", dpi = 320)
 # png(filename="tcga_her2_updated.png",width=400,height=400,units = "px")
 # diffsig_plot(fit,pars,ci_level, signature_labels,riskfactor_labels,NULL,NULL)
 # dev.off()
-
 
