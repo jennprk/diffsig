@@ -32,5 +32,7 @@ diffsig_eval <- function(truebeta, fit, ci_level=80, include = T, ...) {
 
   colnames(estimate) = c("truebeta","estimate","10%","90%","contain","rmse")
 
-  return(list(estimate, perc_coverage=mean(estimate$contain), mean_rmse=mean(estimate$rmse)))
+  return(list(estimate,
+              perc_coverage=mean(estimate$contain),
+              mean_rmse=mean(estimate$rmse)))
 }

@@ -170,10 +170,9 @@ within credible interval + `mean_rmse`: average RMSE of each estimated
 `beta` values\
 The width of the credible interval can be specified with
 `credibleInterval` where in default is set to
-80%(`credibleInterval=80`).
+80%(`ci_level=80`).
 
 ```{r}
-library(diffsig)
 (eval_res = diffsig_eval(truebeta = truebeta, fit = fit, ci_level = 80))
 ```
 
