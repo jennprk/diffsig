@@ -8,28 +8,27 @@
 #' @param ... Arguments passed to `rstan::stan` (e.g. thin, init, ...).
 #' @return An object of class `stanfit` returned by `rstan::stan`
 #'
-diffsig_eval <- function(truebeta, fit, ci_level=80, include = T, ...) {
+diffsig_eval <- function(betatrue, fit, ci_level=80, include = T, ...) {
 
   if (class(fit)!="stanfit") {
     stop("fit has to be a stanfit object from rstan package")
   }
 
-  beta = c(t(truebeta))
+  beta_vec = c(t(betatrue))
   ci_low = (100-ci_level)/2/100
   ci_up = 1-ci_low
 
   estimate= c()
-  for (i in 1:length(beta)) {
-    estimate= rbind(estimate,summary(fit,
-                                     pars="beta",
-                                     probs=c(ci_low,ci_up))$summary[i,c(1,4,5)])
+  for (i in 1:length(beta_vec)) {
+    estimate= rbind(estimate,
+                    summary(fit,pars="beta", probs=c(ci_low,ci_up))$summary[i,c(1,4,5)])
   }
-  estimate = as.data.frame(cbind(beta,estimate))
+  estimate = as.data.frame(cbind(beta_vec,estimate))
   colnames(estimate) = c("truebeta","estimate","min","max")
 
-  for (i in 1:length(beta)) {
+  for (i in 1:length(beta_vec)) {
     estimate$contain[i] = estimate[i,"truebeta"] > estimate[i,"min"] && estimate[i,"truebeta"] < estimate[i,"max"]
-    estimate$rmse[i] = sqrt(mean((estimate$beta[i] - estimate$estimate[i])^2))
+    estimate$rmse[i] = sqrt(mean((estimate$truebeta[i] - estimate$estimate[i])^2))
   }
 
   colnames(estimate) = c("truebeta","estimate","10%","90%","contain","rmse")
