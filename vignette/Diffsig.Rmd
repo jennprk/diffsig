@@ -40,7 +40,7 @@ software packages for inference [@stan; @rstan].
 The authors of the associated [Diffsig manuscript]() [@diffsig] are:
 
 > Ji-Eun Park\*, Markia Smith, Sarah Van Alsten, Andrea Walens, Di Wu,
-> Katherine Hoadley, Melissa Troester, Michael I. Love
+> Katherine A. Hoadley, Melissa A. Troester, Michael I. Love
 
 # Data simulation
 
@@ -51,14 +51,16 @@ include steps of generating mutational count matrix from .vcf or .maf
 files. Details for the count matrix generating process could be found in
 the manuscript [public data preprocess]().
 
-A number of parameters need to be set to generate a simulated dataset:
-+ `N`: number of samples (integer) 
-+ `K`: number of signatures (integer) 
-+ `truetau`: true value of tau (numeric) 
-+ `C_K`: signature matrix (96xK matrix)
+A number of parameters need to be set to generate a simulated dataset: +
+`N`: number of samples (integer) + `K`: number of signatures (integer) +
+`truetau`: true value of tau (numeric) + `C_k`: signature matrix (96xK
+matrix)
 
 In our analysis, we used the COSMIC V3.2 signatures loaded from
-[COSMIC](https://cancer.sanger.ac.uk/signatures/sbs/) where we selected 5 signatures that are known to be associated with breast cancer to avoid selecting an arbitrary set of signatures. If you have your own signature matrix, you can load your signature matrix object named as `C_K`. 
+[COSMIC](https://cancer.sanger.ac.uk/signatures/sbs/) where we selected
+5 signatures that are known to be associated with breast cancer to avoid
+selecting an arbitrary set of signatures. If you have your own signature
+matrix, you can load your signature matrix object named as `C_k`.
 
 ```{r}
 N = 50
@@ -104,8 +106,8 @@ simdat_gen(N=N, K=K, truetau=truetau, C=C_k, continuous=2)
 simdat_gen(N=N, K=K, truetau=truetau, C=C_k, binary=1, categorical=2, cat_levels=c(3,4))
 ```
 
-The `simdat` object includes the three components: true association `beta`,
-mutational counts `Y`, and risk factor matrix `X`. 
+The `simdat` object includes the three components: true association
+`beta`, mutational counts `Y`, and risk factor matrix `X`.
 
 ```{r}
 head(simdat$truebeta)
@@ -119,22 +121,38 @@ head(simdat$Y)
 head(simdat$X)
 ```
 
-# Association estimation 
+# Association estimation
 
-Once we obtain the mutation counts `Y`, risk factors `X`, and mutational signatures matrix `C`/`C_K`, we can estimate the association between risk factors and mutational signatures using the function `diffsig_fit`.
+Once we obtain the mutation counts `Y`, risk factors `X`, and mutational
+signatures matrix `C`/`C_K`, we can estimate the association between
+risk factors and mutational signatures using the function `diffsig_fit`.
 
 ```{r}
 fit <- diffsig_fit(X=simdat$X, Y=simdat$Y, C=C_k, beta_sd=0.5,
                    chains=4, cores=4, seed=123)
 ```
 
-This runs the hierarchical Bayesian model that yields the posterior estimation of the associations between the risk factors and mutational signature `beta`. In our analysis, we use 4 chains and 4 cores with 2000 iterations.
+This runs the hierarchical Bayesian model that yields the posterior
+estimation of the associations between the risk factors and mutational
+signature `beta`. In our analysis, we use 4 chains and 4 cores with 2000
+iterations.
 
-Depending on your interest, sample-signature association from Dirichlet sampling `phi` and the precision parameter `tau` could be extracted from the model by including `pars=c("beta","tau","phi")` in `diffsig_fit()`. 
+Depending on your interest, sample-signature association from Dirichlet
+sampling `phi` and the precision parameter `tau` could be extracted from
+the model by including `pars=c("beta","tau","phi")` in `diffsig_fit()`.
 
 # Convergence examination
 
-In order to check if the model converged, we recommend to check the R-hat convergence measure.[@stan; @rstan] This diagnostic measure shows how well the posterior estimates are converging and mixing in split chains. `rstan` recommends to use samples with R-hat values less than 1.05 and it seems that our simulation has a well-converged result with all R-hats below 1.01. `traceplots` from `rstan` is another common way to check convergence. The `traceplot()` function shows how well the chains are mixing across chains, where a poorly mixed result will show divergence between chains. Traceplots from our simulated data shows a nicely mixed and well-converged result across all 4 chains.
+In order to check if the model converged, we recommend to check the
+R-hat convergence measure.[@stan; @rstan] This diagnostic measure shows
+how well the posterior estimates are converging and mixing in split
+chains. `rstan` recommends to use samples with R-hat values less than
+1.05 and it seems that our simulation has a well-converged result with
+all R-hats below 1.01. `traceplots` from `rstan` is another common way
+to check convergence. The `traceplot()` function shows how well the
+chains are mixing across chains, where a poorly mixed result will show
+divergence between chains. Traceplots from our simulated data shows a
+nicely mixed and well-converged result across all 4 chains.
 
 ```{r}
 mu_tau_summary <- summary(fit, pars = c("beta"), probs = c(0.1, 0.9))$summary
@@ -142,20 +160,38 @@ data.frame(Rhat =mu_tau_summary[,"Rhat"])
 rstan::traceplot(fit, pars="beta")
 ```
 
-Additionally, *Diffsig* provides a function `diffsig_eval` to generate evaluation for simulated data results. The function outputs a list of three objects: summary statistics matrix `estimate` with the desired credible interval width and two measurements `perc_coverage` and `mean_rmse`.
-+ `perc_coverage`: percentage of true values belonging within credible interval
-+ `mean_rmse`: average RMSE of each estimated `beta` values  
-The width of the credible interval can be specified with `credibleInterval` where in default is set to 80%(`credibleInterval=80`). 
+Additionally, *Diffsig* provides a function `diffsig_eval` to generate
+evaluation for simulated data results. The function outputs a list of
+three objects: summary statistics matrix `estimate` with the desired
+credible interval width and two measurements `perc_coverage` and
+`mean_rmse`. + `perc_coverage`: percentage of true values belonging
+within credible interval + `mean_rmse`: average RMSE of each estimated
+`beta` values\
+The width of the credible interval can be specified with
+`credibleInterval` where in default is set to
+80%(`credibleInterval=80`).
 
 ```{r}
 (eval_res = diffsig_eval(truebeta = truebeta, fit = fit, ci_level = 80))
 ```
 
-It is ideal to have results with coverage greater than 80% or mean RMSE less than 0.1. In our example, we can see that the coverage percentage is `r round(eval_res$perc_coverage,2)*100`% and mean RMSE around `r round(eval_res$mean_rmse,2)` which means that we acquired a good estimation. Coverage and RMSE can be improved by increasing the sample size which increases the power of the model.
+It is ideal to have results with coverage greater than 80% or mean RMSE
+less than 0.1. In our example, we can see that the coverage percentage
+is `r round(eval_res$perc_coverage,2)*100`% and mean RMSE around
+`r round(eval_res$mean_rmse,2)` which means that we acquired a good
+estimation. Coverage and RMSE can be improved by increasing the sample
+size which increases the power of the model.
 
 # Plotting associations
 
-Once we observe good convergence, we can then interpret the estimations we obtained by plotting the posterior estimates. `diffsig_plot()` is a modified version of the `stan_plot()` function from the `rstan` package which allows to group the segments by groups (or risk factors) for easier visualization. Since each of the estimations are for the `K` signatures and `M` risk factors, the rows are labelled with the signatures with `signature_labels` and are divided and colored for each risk factor with `riskfactor_labels`. 
+Once we observe good convergence, we can then interpret the estimations
+we obtained by plotting the posterior estimates. `diffsig_plot()` is a
+modified version of the `stan_plot()` function from the `rstan` package
+which allows to group the segments by groups (or risk factors) for
+easier visualization. Since each of the estimations are for the `K`
+signatures and `M` risk factors, the rows are labelled with the
+signatures with `signature_labels` and are divided and colored for each
+risk factor with `riskfactor_labels`.
 
 ```{r}
 numpars = prod(dim(simdat$truebeta)) #15
@@ -166,12 +202,23 @@ diffsig_plot(fit,
              riskfactor_labels = c("intercept","cont1","cont2"),
              ncol=1, outlist = F)
 ```
-Each row shows the estimated association between each signature and risk factor. The circle points represent the point estimations, black lines represent the credible intervals (80% CI in this case), and the colored segments represent the 25% and 75% quantile, respectively.
 
-In addition,  
-  
-+ `ncol`: by default is set to 1, which indicates the plots for each risk factor will be printed vertically in 1 column. If `ncol` is set to the number of risk factors (including intercept), plots will be printed horizontally. `ncol` must be an integer between 1 to the number of risk factors.
-+ `outlist`: by default is set to `FALSE`, which indicates the final output is a single plot with all plots aligned based on the specified `ncol`. If set to `TRUE`, the output will be a list of individual plots for each risk factor.
+Each row shows the estimated association between each signature and risk
+factor. The circle points represent the point estimations, black lines
+represent the credible intervals (80% CI in this case), and the colored
+segments represent the 25% and 75% quantile, respectively.
+
+In addition,
+
+-   `ncol`: by default is set to 1, which indicates the plots for each
+    risk factor will be printed vertically in 1 column. If `ncol` is set
+    to the number of risk factors (including intercept), plots will be
+    printed horizontally. `ncol` must be an integer between 1 to the
+    number of risk factors.
+-   `outlist`: by default is set to `FALSE`, which indicates the final
+    output is a single plot with all plots aligned based on the
+    specified `ncol`. If set to `TRUE`, the output will be a list of
+    individual plots for each risk factor.
 
 ```{r}
 diffsig_plot(fit, 
@@ -191,7 +238,8 @@ diffsig_plot(fit,
              ncol=1, outlist = T)
 ```
 
-The colors for the segments and estimation points can also be tailored based on preference by specifying `colors` and `est_color` parameters.
+The colors for the segments and estimation points can also be tailored
+based on preference by specifying `colors` and `est_color` parameters.
 
 ```{r}
 diffsig_plot(fit, 
@@ -206,7 +254,24 @@ diffsig_plot(fit,
 ```
 
 # Interpreting the results
-Note that estimates must be interpreted within each risk factor and not be compared between estimates for different risk factors. For example, let's call the association between SBS1 and SBS2 with risk factor 1 as $\beta_{11}$ and $\beta_{12}$, respectively, and association between SBS1 and SBS2 with risk factor 2 as $\beta_{21}$ and $\beta_{22}$ ,respectively. From the result we can see that $\beta_{11}=$`r round(eval_res[[1]][6,2],2)`, $\beta_{12}=$`r round(eval_res[[1]][7,2],2)`, $\beta_{21}=$`r round(eval_res[[1]][11,2],2)`, and $\beta_{22}=$`r round(eval_res[[1]][12,2],2)`. What we can compare is only between ($\beta_{11}$ and $\beta_{12}$) or between ($\beta_{21}$ and $\beta_{22}$), e.g. $\beta_{11}<\beta_{12}$ so risk factor 1 has higher association with SBS2 than 1. What we cannot compare is across ($\beta_{11}$,$\beta_{12}$) and ($\beta_{21}$,$\beta_{22}$), e.g. we cannot say that risk factor 1 is more associated with SBS2 because $\beta_{12}>\beta_{22}$. Reasons for such limitation can be found from the Discussion of our paper (link)
+
+Note that estimates must be interpreted within each risk factor and not
+be compared between estimates for different risk factors. For example,
+let's call the association between SBS1 and SBS2 with risk factor 1 as
+$\beta_{11}$ and $\beta_{12}$, respectively, and association between
+SBS1 and SBS2 with risk factor 2 as $\beta_{21}$ and $\beta_{22}$
+,respectively. From the result we can see that
+$\beta_{11}=$`r round(eval_res[[1]][6,2],2)`,
+$\beta_{12}=$`r round(eval_res[[1]][7,2],2)`,
+$\beta_{21}=$`r round(eval_res[[1]][11,2],2)`, and
+$\beta_{22}=$`r round(eval_res[[1]][12,2],2)`. What we can compare is
+only between ($\beta_{11}$ and $\beta_{12}$) or between ($\beta_{21}$
+and $\beta_{22}$), e.g. $\beta_{11}<\beta_{12}$ so risk factor 1 has
+higher association with SBS2 than 1. What we cannot compare is across
+($\beta_{11}$,$\beta_{12}$) and ($\beta_{21}$,$\beta_{22}$), e.g. we
+cannot say that risk factor 1 is more associated with SBS2 because
+$\beta_{12}>\beta_{22}$. Reasons for such limitation can be found from
+the Discussion of our paper (link)
 
 # Session info
 
