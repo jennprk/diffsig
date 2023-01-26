@@ -14,20 +14,22 @@ diffsig_eval <- function(truebeta, fit, ci_level=80, include = T, ...) {
     stop("fit has to be a stanfit object from rstan package")
   }
 
-  truebeta = c(t(truebeta))
+  beta = c(t(truebeta))
   ci_low = (100-ci_level)/2/100
   ci_up = 1-ci_low
 
   estimate= c()
-  for (i in 1:length(truebeta)) {
-    estimate= rbind(estimate,summary(fit, pars="beta", probs=c(ci_low,ci_up))$summary[i,c(1,4,5)])
+  for (i in 1:length(beta)) {
+    estimate= rbind(estimate,summary(fit,
+                                     pars="beta",
+                                     probs=c(ci_low,ci_up))$summary[i,c(1,4,5)])
   }
-  estimate = as.data.frame(cbind(truebeta,estimate))
+  estimate = as.data.frame(cbind(beta,estimate))
   colnames(estimate) = c("truebeta","estimate","min","max")
 
-  for (i in 1:length(truebeta)) {
+  for (i in 1:length(beta)) {
     estimate$contain[i] = estimate[i,"truebeta"] > estimate[i,"min"] && estimate[i,"truebeta"] < estimate[i,"max"]
-    estimate$rmse[i] = sqrt(mean((estimate$truebeta[i] - estimate$estimate[i])^2))
+    estimate$rmse[i] = sqrt(mean((estimate$beta[i] - estimate$estimate[i])^2))
   }
 
   colnames(estimate) = c("truebeta","estimate","10%","90%","contain","rmse")
