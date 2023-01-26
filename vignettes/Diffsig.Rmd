@@ -21,7 +21,7 @@ vignette: |
   %\VignetteIndexEntry{Diffsig - estimation of association of risk factors and 
   mutational signatures}
   %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::knitr}
 editor_options: 
   markdown: 
     wrap: 72

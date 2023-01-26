@@ -76,54 +76,53 @@ diffsig_plot <- function(fit, pars, signature_labels, riskfactor_labels,
             panel.grid.minor.y = element_line(colour='grey', linetype='dashed', size=0.2))
   }
 
-  }
   if(!is.null(colors)) {
     if(length(unique(riskfactor_labels))!=length(colors)) {
       warning("Number of colors does not match the number of unique groups from riskfactor_labels")
     }
   }
- 
+
   ## Setup data
   if(is.null(est_color)) {
     est_color <- "#FFC20A"
   }
-  
+
   ci_low = (100-ci_level)/2/100
   ci_up = 1-ci_low
-  
+
   statmat <- summary(fit, probs=c(ci_low,0.25,0.5,0.75,ci_up))$summary[,c("mean","10%", "25%", "50%", "75%", "90%")]
   statmat <- statmat[pars,]
   number_signatures <- length(signature_labels)
   number_riskfactors <- length(riskfactor_labels)
   statlist <- list()
   for (i in 1:number_riskfactors) {
-    statlist[[i]] <- statmat[(5*i-4):(5*i),]  
+    statlist[[i]] <- statmat[(5*i-4):(5*i),]
   }
-  
+
   y <- as.numeric(seq(number_signatures, 1, by = -1))
   xlim.use <- c(min(statmat[, 2L]), max(statmat[, 6L]))
   xlim.use <- xlim.use + diff(xlim.use) * c(-0.05, 0.05)
-  
+
   p.list <- list()
   for (i in 1:number_riskfactors) {
     xy.df <- data.frame(params = rownames(statlist[[i]]), y, statlist[[i]])
     xy.df$group <- rep(riskfactor_labels[[i]], times=number_signatures)
     colnames(xy.df) <- c("params", "y", "mean", "ll", "l", "m", "h", "hh","group")
-    
+
     p.base <- ggplot2::ggplot(xy.df)
     p.name <- ggplot2::scale_y_continuous(breaks = y,
                                           labels = signature_labels,
                                           limits = c(0.8, y + 0.2))
-    
+
     p.all <- p.base + ggplot2::xlim(xlim.use) + p.name + geom_vline(xintercept=0, linetype="dashed",color="darkgrey") +
       theme_bw()
-    
+
     p.ci <- ggplot2::geom_segment(mapping = ggplot2::aes_string(x = "ll", xend = "hh", y = "y", yend = "y"))
     p.list[[i]] <- p.all + p.ci +
       theme(panel.grid.major.y = element_line(colour="white", size=0.1),
             panel.grid.minor.y = element_line(colour='grey', linetype='dashed', size=0.2))
   }
-  
+
   ## Colors not specified
   if(is.null(colors)) {
     color_by <- c("#929292","#2484F6","#00AD35","#E84A35","#CA001C","#C50077","#7C00FF")
@@ -131,8 +130,8 @@ diffsig_plot <- function(fit, pars, signature_labels, riskfactor_labels,
       p.ci.2 <- ggplot2::geom_segment(ggplot2::aes_string(x = "l", xend = "h", y = "y", yend = "y"), color = color_by[i], size = 3)
       p.point <- ggplot2::geom_point(ggplot2::aes_string(x = "m", y = "y"), shape = 19, color=color_by[i], size = 3, show.legend = F)
       p.point2 <- ggplot2::geom_point(ggplot2::aes_string(x = "m", y = "y"), shape = 19, color=est_color, size = 2)
-      
-      p.list[[i]] <- p.list[[i]] + 
+
+      p.list[[i]] <- p.list[[i]] +
         p.ci.2 +
         p.point +
         p.point2 +
@@ -203,17 +202,9 @@ diffsig_plot <- function(fit, pars, signature_labels, riskfactor_labels,
   # pp$layout$panel_params[[1]]$y.sec$scale$labels <- signature_labels
   # ppp <- ggplot_gtable(pp)
   # p_fin <- as.ggplot(ppp)
-  
+
   return(p)
 }
 
-
-setwd("/Users/jieun/Downloads")
-ggsave("tcga_hrdscore_updated.png",width=1600,height=800,unit="px", dpi = 320)
-ggsave("tcga_hrdscore_vertical.png",width=800,height=1600,unit="px", dpi = 320)
-ggsave("tcga_her2_updated.png",width=800,height=1600,unit="px", dpi = 320)
-# png(filename="tcga_her2_updated.png",width=400,height=400,units = "px")
-# diffsig_plot(fit,pars,ci_level, signature_labels,riskfactor_labels,NULL,NULL)
-# dev.off()
 
 
