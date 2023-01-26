@@ -173,6 +173,7 @@ The width of the credible interval can be specified with
 80%(`credibleInterval=80`).
 
 ```{r}
+library(diffsig)
 (eval_res = diffsig_eval(truebeta = truebeta, fit = fit, ci_level = 80))
 ```
 
