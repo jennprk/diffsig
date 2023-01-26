@@ -14,7 +14,7 @@ diffsig_eval <- function(truebeta, fit, ci_level=80, include = T, ...) {
     stop("fit has to be a stanfit object from rstan package")
   }
 
-  truebeta = c(t(simdat$truebeta))
+  truebeta = c(t(truebeta))
   ci_low = (100-ci_level)/2/100
   ci_up = 1-ci_low
 

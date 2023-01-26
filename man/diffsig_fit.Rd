@@ -4,18 +4,20 @@
 \alias{diffsig_fit}
 \title{Hierarchical Bayesian Modeling with Stan}
 \usage{
-diffsig_fit(x, y, C, beta_sd, pars = c("beta"), include = T, ...)
+diffsig_fit(X, Y, C, beta_sd, pars = c("beta"), include = T, ...)
 }
 \arguments{
-\item{x}{risk factor matrix (MxN)}
-
-\item{y}{mutational count matrix (LxN)}
-
 \item{C}{muational signature matrix (LxK)}
 
 \item{beta_sd}{standard deviation for sampling hyperparameter beta}
 
+\item{pars}{desired parameters from \code{stanfit} to save. Default is "beta" (pars="beta"), but can also include parameters such as "tau".}
+
 \item{...}{Arguments passed to \code{rstan::stan} (e.g. thin, init, ...).}
+
+\item{x}{risk factor matrix (MxN)}
+
+\item{y}{mutational count matrix (LxN)}
 }
 \value{
 An object of class \code{stanfit} returned by \code{rstan::stan}

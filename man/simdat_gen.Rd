@@ -10,10 +10,10 @@ simdat_gen(
   L = 96,
   truetau = 100,
   C,
-  continuous = NULL,
-  binary = NULL,
-  categorical = NULL,
-  cat_levels = NULL,
+  continuous = NA,
+  binary = NA,
+  categorical = NA,
+  cat_levels = NA,
   seed = sample(1:1e+06, 1)
 )
 }

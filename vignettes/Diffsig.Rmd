@@ -29,7 +29,6 @@ editor_options:
 
 ```{r setup, echo=FALSE, results="hide"}
 knitr::opts_chunk$set(cache=FALSE, message=FALSE, warning=FALSE)
-library(diffsig)
 ```
 
 # Introduction
@@ -42,6 +41,11 @@ The authors of the associated [Diffsig manuscript]() [@diffsig] are:
 
 > Ji-Eun Park\*, Markia Smith, Sarah Van Alsten, Andrea Walens, Di Wu,
 > Katherine A. Hoadley, Melissa A. Troester, Michael I. Love
+
+```{r}
+library(diffsig)
+```
+
 
 # Data simulation
 
@@ -173,7 +177,7 @@ The width of the credible interval can be specified with
 80%(`ci_level=80`).
 
 ```{r}
-(eval_res = diffsig_eval(truebeta = truebeta, fit = fit, ci_level = 80))
+(eval_res = diffsig_eval(truebeta = simdat$truebeta, fit = fit, ci_level = 80))
 ```
 
 It is ideal to have results with coverage greater than 80% or mean RMSE

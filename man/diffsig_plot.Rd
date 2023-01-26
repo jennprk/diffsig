@@ -4,14 +4,36 @@
 \alias{diffsig_plot}
 \title{Plot posterior estimates results from diffsig_fit}
 \usage{
-diffsig_plot(fit, pars = "beta", rowlabels = NULL, ...)
+diffsig_plot(
+  fit,
+  pars,
+  signature_labels,
+  riskfactor_labels,
+  est_color = NULL,
+  colors = NULL,
+  ncol = 1,
+  outlist = FALSE,
+  ci_level = 80
+)
 }
 \arguments{
 \item{fit}{stan fit object from diffsig_stan}
 
-\item{pars}{parameters to plot}
+\item{pars}{vector of row numbers to plot from \code{fit}}
 
-\item{rowlabels}{labels for betas in diffsig plot}
+\item{signature_labels}{vector of signature labels}
+
+\item{riskfactor_labels}{risk factor group labels}
+
+\item{est_color}{point estimate color indicator, default set to yellow}
+
+\item{colors}{vector of colors for 80\% credible interval, recommended to have same color for same risk factor group (colors=NULL generate default colors up to 7 risk factors)}
+
+\item{ncol}{number of columns that indicates how to align the plots e.g. ncol=1: set plots vertical; ncol=(# of risk factors) set plots horizontal}
+
+\item{outlist}{default FALSE indicates to combine plots for all risk factors into one. outlist=T indicates to output as a list of plots}
+
+\item{ci_level}{numerical value for credible interval percentage (default 80)}
 
 \item{...}{Arguments passed to ggplot}
 }
