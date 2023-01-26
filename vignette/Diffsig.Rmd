@@ -1,5 +1,5 @@
 ---
-title: "Diffsig - "
+title: "Diffsig: Associating Risk Factors With Mutational Signatures"
 date: "`r format(Sys.Date(), '%m/%d/%Y')`"
 author: "Ji-Eun Park, Michael Love"
 output: 
@@ -65,7 +65,7 @@ N = 50
 K = 5
 truetau = 100
 C = read.table("https://cancer.sanger.ac.uk/signatures/documents/453/COSMIC_v3.2_SBS_GRCh38.txt", header = T, row.names = 1)
-C_K =  C[,c("SBS2","SBS3","SBS5","SBS8","SBS13")]
+C_k =  C[,c("SBS1","SBS2","SBS3","SBS5","SBS13")]
 ```
 
 Now, there are some additional parameters that should be set depending
@@ -81,7 +81,8 @@ So, for example, if you would like to include 2 continuous variable, you
 would do:
 
 ```{r}
-simdat = simdat_gen(N=N, K=K, truetau=truetau, C=C_K,
+set.seed(123)
+simdat = simdat_gen(N=N, K=K, truetau=truetau, C=C_k,
            continuous=2, binary=NA, categorical=NA, cat_levels=NA, seed=123)
 ```
 
@@ -89,7 +90,7 @@ Or, if you want to include 1 binary and 2 categorical variable with 3
 and 4 levels:
 
 ```{r, eval=F}
-simdat = simdat_gen(N=N, K=K, truetau=truetau, C=C, 
+simdat = simdat_gen(N=N, K=K, truetau=truetau, C=C_k, 
            continuous=NA, binary=1, categorical=2, cat_levels=c(3,4))
 ```
 
@@ -99,8 +100,8 @@ variables you wish not to include.
 
 ```{r, eval=F}
 # Same as the above examples
-simdat_gen(N=N, K=K, truetau=truetau, C=C, continuous=2)
-simdat_gen(N=N, K=K, truetau=truetau, C=C, binary=1, categorical=2, cat_levels=c(3,4))
+simdat_gen(N=N, K=K, truetau=truetau, C=C_k, continuous=2)
+simdat_gen(N=N, K=K, truetau=truetau, C=C_k, binary=1, categorical=2, cat_levels=c(3,4))
 ```
 
 The `simdat` object includes the three components: true association `beta`,
@@ -123,7 +124,7 @@ head(simdat$X)
 Once we obtain the mutation counts `Y`, risk factors `X`, and mutational signatures matrix `C`/`C_K`, we can estimate the association between risk factors and mutational signatures using the function `diffsig_fit`.
 
 ```{r}
-fit <- diffsig_fit(X=simdat$X, Y=simdat$Y, C=C_K, beta_sd=0.5,
+fit <- diffsig_fit(X=simdat$X, Y=simdat$Y, C=C_k, beta_sd=0.5,
                    chains=4, cores=4, seed=123)
 ```
 
@@ -154,27 +155,58 @@ It is ideal to have results with coverage greater than 80% or mean RMSE less tha
 
 # Plotting associations
 
-Once we observe good convergence, we can then interpret the estimations we obtained by plotting the posterior estimates. `diffsig_plot()` is a modified version of the `stan_plot()` function from the `rstan` package which allows to group the segments by groups (or risk factors) for easier visualization. Since each of the estimations are for the `K` signatures and `M` risk factors, the rows are repeatedly labelled with the signatures with `rowlabels` and are colored based on risk factors with `rowgroup`.
+Once we observe good convergence, we can then interpret the estimations we obtained by plotting the posterior estimates. `diffsig_plot()` is a modified version of the `stan_plot()` function from the `rstan` package which allows to group the segments by groups (or risk factors) for easier visualization. Since each of the estimations are for the `K` signatures and `M` risk factors, the rows are labelled with the signatures with `signature_labels` and are divided and colored for each risk factor with `riskfactor_labels`. 
 
 ```{r}
-diffsig_plot(fit, pars=1:15, ci_level = 80,
-             rowlabels = rep(c("SBS2","SBS3","SBS5","SBS8","SBS13"),3), 
-             rowgroup = rep(c("intercept","cont1","cont2"),each=5))
+numpars = prod(dim(simdat$truebeta)) #15
+diffsig_plot(fit, 
+             pars=1:numpars, 
+             ci_level = 80,
+             signature_labels = c("SBS1","SBS2","SBS3","SBS5","SBS13"), 
+             riskfactor_labels = c("intercept","cont1","cont2"),
+             ncol=1, outlist = F)
 ```
 Each row shows the estimated association between each signature and risk factor. The circle points represent the point estimations, black lines represent the credible intervals (80% CI in this case), and the colored segments represent the 25% and 75% quantile, respectively.
 
-**FIX THIS PART** Note that.. relativity.. **FIX THIS PART**
+In addition,  
+  
++ `ncol`: by default is set to 1, which indicates the plots for each risk factor will be printed vertically in 1 column. If `ncol` is set to the number of risk factors (including intercept), plots will be printed horizontally. `ncol` must be an integer between 1 to the number of risk factors.
++ `outlist`: by default is set to `FALSE`, which indicates the final output is a single plot with all plots aligned based on the specified `ncol`. If set to `TRUE`, the output will be a list of individual plots for each risk factor.
+
+```{r}
+diffsig_plot(fit, 
+             pars=1:numpars, 
+             ci_level = 80,
+             signature_labels = c("SBS1","SBS2","SBS3","SBS5","SBS13"), 
+             riskfactor_labels = c("intercept","cont1","cont2"),
+             ncol=3, outlist = F)
+```
+
+```{r}
+diffsig_plot(fit, 
+             pars=1:numpars, 
+             ci_level = 80,
+             signature_labels = c("SBS1","SBS2","SBS3","SBS5","SBS13"), 
+             riskfactor_labels = c("intercept","cont1","cont2"),
+             ncol=1, outlist = T)
+```
 
 The colors for the segments and estimation points can also be tailored based on preference by specifying `colors` and `est_color` parameters.
 
 ```{r}
-diffsig_plot(fit, pars=1:15, ci_level = 80,
-             rowlabels = rep(c("SBS2","SBS3","SBS5","SBS8","SBS13"),3), 
-             rowgroup = rep(c("intercept","cont1","cont2"),each=5),
+diffsig_plot(fit, 
+             pars=1:numpars, 
+             ci_level = 80,
+             signature_labels = c("SBS1","SBS2","SBS3","SBS5","SBS13"), 
+             riskfactor_labels = c("intercept","cont1","cont2"),
              colors=c("#D81B60","#1E88E5","#FFC107"),
-             est_color="#F5F3EF") +
-  geom_point(aes(y=15:1,x=simdat$truebeta),shape=3)
+             est_color="#F5F3EF",
+             ncol=1,
+             outlist=FALSE)
 ```
+
+# Interpreting the results
+Note that estimates must be interpreted within each risk factor and not be compared between estimates for different risk factors. For example, let's call the association between SBS1 and SBS2 with risk factor 1 as $\beta_{11}$ and $\beta_{12}$, respectively, and association between SBS1 and SBS2 with risk factor 2 as $\beta_{21}$ and $\beta_{22}$ ,respectively. From the result we can see that $\beta_{11}=$`r round(eval_res[[1]][6,2],2)`, $\beta_{12}=$`r round(eval_res[[1]][7,2],2)`, $\beta_{21}=$`r round(eval_res[[1]][11,2],2)`, and $\beta_{22}=$`r round(eval_res[[1]][12,2],2)`. What we can compare is only between ($\beta_{11}$ and $\beta_{12}$) or between ($\beta_{21}$ and $\beta_{22}$), e.g. $\beta_{11}<\beta_{12}$ so risk factor 1 has higher association with SBS2 than 1. What we cannot compare is across ($\beta_{11}$,$\beta_{12}$) and ($\beta_{21}$,$\beta_{22}$), e.g. we cannot say that risk factor 1 is more associated with SBS2 because $\beta_{12}>\beta_{22}$. Reasons for such limitation can be found from the Discussion of our paper (link)
 
 # Session info
 
