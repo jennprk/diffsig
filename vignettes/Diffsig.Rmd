@@ -176,16 +176,16 @@ The width of the credible interval can be specified with
 `credibleInterval` where in default is set to
 80%(`ci_level=80`).
 
-```{r}
+```{r eval=F}
 (eval_res = diffsig_eval(betatrue = simdat$truebeta, fit = fit, ci_level = 80))
 ```
 
-It is ideal to have results with coverage greater than 80% or mean RMSE
-less than 0.1. In our example, we can see that the coverage percentage
-is `r round(eval_res$perc_coverage,2)*100`% and mean RMSE around
-`r round(eval_res$mean_rmse,2)` which means that we acquired a good
-estimation. Coverage and RMSE can be improved by increasing the sample
-size which increases the power of the model.
+<!-- It is ideal to have results with coverage greater than 80% or mean RMSE -->
+<!-- less than 0.1. In our example, we can see that the coverage percentage -->
+<!-- is `r round(eval_res$perc_coverage,2)*100`% and mean RMSE around -->
+<!-- `r round(eval_res$mean_rmse,2)` which means that we acquired a good -->
+<!-- estimation. Coverage and RMSE can be improved by increasing the sample -->
+<!-- size which increases the power of the model. -->
 
 # Plotting associations
 
