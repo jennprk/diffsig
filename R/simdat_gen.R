@@ -12,13 +12,13 @@
 #' @param categorical number of categorical variables
 #' @param cat_levels vector of number of levels for each categorical variables
 #' @param seed seed number for random number generate (set.seed)
+#' @import fastDummies
+#' @import dirmult
 #' @return A list of simulated beta, mutational count (Y), and risk factor (X)
 #'
 simdat_gen <- function(N=100,K=5,L=96,truetau=100, C,
                        continuous=NA,binary=NA,categorical=NA, cat_levels=NA,
                        seed=sample(1:1e6,1)) {
-  require(dirmult)
-  require(fastDummies)
 
   if (ncol(C)!=K) {
     stop("Number of signatures does not match specified K")

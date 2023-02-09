@@ -11,13 +11,13 @@
 #' @param outlist default FALSE indicates to combine plots for all risk factors into one. outlist=T indicates to output as a list of plots
 #' @param ci_level numerical value for credible interval percentage (default 80)
 #' @param ... Arguments passed to ggplot
+#' @import ggplot2
+#' @import cowplot
+#' @import grid
 #' @return Diffsig plot
 #'
-
 diffsig_plot <- function(fit, pars, signature_labels, riskfactor_labels,
                          est_color=NULL, colors=NULL,ncol=1,outlist=FALSE,ci_level=80) {
-  require(rstan, quietly = T)
-  require(viridis, quietly = T)
 
   ## Errors and warnings
   if(length(pars)!=length(signature_labels)*length(riskfactor_labels)) {
@@ -43,7 +43,7 @@ diffsig_plot <- function(fit, pars, signature_labels, riskfactor_labels,
   ci_low = (100-ci_level)/2/100
   ci_up = 1-ci_low
 
-  statmat <- summary(fit, probs=c(ci_low,0.25,0.5,0.75,ci_up))$summary[,c("mean","10%", "25%", "50%", "75%", "90%")]
+  statmat <- rstan::summary(fit, probs=c(ci_low,0.25,0.5,0.75,ci_up))$summary[,c("mean","10%", "25%", "50%", "75%", "90%")]
   statmat <- statmat[pars,]
   number_signatures <- length(signature_labels)
   number_riskfactors <- length(riskfactor_labels)
@@ -80,47 +80,6 @@ diffsig_plot <- function(fit, pars, signature_labels, riskfactor_labels,
     if(length(unique(riskfactor_labels))!=length(colors)) {
       warning("Number of colors does not match the number of unique groups from riskfactor_labels")
     }
-  }
-
-  ## Setup data
-  if(is.null(est_color)) {
-    est_color <- "#FFC20A"
-  }
-
-  ci_low = (100-ci_level)/2/100
-  ci_up = 1-ci_low
-
-  statmat <- summary(fit, probs=c(ci_low,0.25,0.5,0.75,ci_up))$summary[,c("mean","10%", "25%", "50%", "75%", "90%")]
-  statmat <- statmat[pars,]
-  number_signatures <- length(signature_labels)
-  number_riskfactors <- length(riskfactor_labels)
-  statlist <- list()
-  for (i in 1:number_riskfactors) {
-    statlist[[i]] <- statmat[(5*i-4):(5*i),]
-  }
-
-  y <- as.numeric(seq(number_signatures, 1, by = -1))
-  xlim.use <- c(min(statmat[, 2L]), max(statmat[, 6L]))
-  xlim.use <- xlim.use + diff(xlim.use) * c(-0.05, 0.05)
-
-  p.list <- list()
-  for (i in 1:number_riskfactors) {
-    xy.df <- data.frame(params = rownames(statlist[[i]]), y, statlist[[i]])
-    xy.df$group <- rep(riskfactor_labels[[i]], times=number_signatures)
-    colnames(xy.df) <- c("params", "y", "mean", "ll", "l", "m", "h", "hh","group")
-
-    p.base <- ggplot2::ggplot(xy.df)
-    p.name <- ggplot2::scale_y_continuous(breaks = y,
-                                          labels = signature_labels,
-                                          limits = c(0.8, y + 0.2))
-
-    p.all <- p.base + ggplot2::xlim(xlim.use) + p.name + geom_vline(xintercept=0, linetype="dashed",color="darkgrey") +
-      theme_bw()
-
-    p.ci <- ggplot2::geom_segment(mapping = ggplot2::aes_string(x = "ll", xend = "hh", y = "y", yend = "y"))
-    p.list[[i]] <- p.all + p.ci +
-      theme(panel.grid.major.y = element_line(colour="white", size=0.1),
-            panel.grid.minor.y = element_line(colour='grey', linetype='dashed', size=0.2))
   }
 
   ## Colors not specified
@@ -196,12 +155,6 @@ diffsig_plot <- function(fit, pars, signature_labels, riskfactor_labels,
   } else {
     (p=cowplot::plot_grid(plotlist=p.list, ncol = ncol))
   }
-
-  # pp = ggplot_build(p)
-  # ## re-label y-axis with names
-  # pp$layout$panel_params[[1]]$y.sec$scale$labels <- signature_labels
-  # ppp <- ggplot_gtable(pp)
-  # p_fin <- as.ggplot(ppp)
 
   return(p)
 }

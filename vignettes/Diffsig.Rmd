@@ -18,17 +18,19 @@ abstract: |
   Diffsig package version: `r packageVersion("diffsig")`
 bibliography: library.bib
 vignette: |
-  %\VignetteIndexEntry{Diffsig - estimation of association of risk factors and 
+  %\VignetteIndexEntry{Diffsig - association of risk factors and 
   mutational signatures}
   %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::knitr}
+  %\VignetteEngine{knitr::html}
 editor_options: 
   markdown: 
     wrap: 72
 ---
 
-```{r setup, echo=FALSE, results="hide"}
+```{r setup, echo=T, results="hide"}
 knitr::opts_chunk$set(cache=FALSE, message=FALSE, warning=FALSE)
+library(diffsig, quietly = T)
+library(rstan, quietly = T)
 ```
 
 # Introduction
@@ -41,11 +43,6 @@ The authors of the associated [Diffsig manuscript]() [@diffsig] are:
 
 > Ji-Eun Park\*, Markia Smith, Sarah Van Alsten, Andrea Walens, Di Wu,
 > Katherine A. Hoadley, Melissa A. Troester, Michael I. Love
-
-```{r}
-library(diffsig)
-```
-
 
 # Data simulation
 
@@ -69,10 +66,17 @@ matrix, you can load your signature matrix object named as `C_k`.
 
 ```{r}
 N = 50
-K = 5
+K = 3
 truetau = 100
+```
+
+```{r eval=F}
 C = read.table("https://cancer.sanger.ac.uk/signatures/documents/453/COSMIC_v3.2_SBS_GRCh38.txt", header = T, row.names = 1)
-C_k =  C[,c("SBS1","SBS2","SBS3","SBS5","SBS13")]
+C_k =  C[,c("SBS2","SBS3","SBS13")]
+```
+
+```{r echo=FALSE}
+data(cosmic_subset)
 ```
 
 Now, there are some additional parameters that should be set depending
@@ -134,7 +138,7 @@ risk factors and mutational signatures using the function `diffsig_fit`.
 
 ```{r}
 fit <- diffsig_fit(X=simdat$X, Y=simdat$Y, C=C_k, beta_sd=0.5,
-                   chains=4, cores=4, seed=123)
+                   chains=2, cores=2, seed=123)
 ```
 
 This runs the hierarchical Bayesian model that yields the posterior
@@ -160,7 +164,7 @@ divergence between chains. Traceplots from our simulated data shows a
 nicely mixed and well-converged result across all 4 chains.
 
 ```{r}
-mu_tau_summary <- summary(fit, pars = c("beta"), probs = c(0.1, 0.9))$summary
+mu_tau_summary <- rstan::summary(fit, pars = c("beta"), probs = c(0.1, 0.9))$summary
 data.frame(Rhat =mu_tau_summary[,"Rhat"])
 rstan::traceplot(fit, pars="beta")
 ```
@@ -176,16 +180,16 @@ The width of the credible interval can be specified with
 `credibleInterval` where in default is set to
 80%(`ci_level=80`).
 
-```{r eval=F}
+```{r}
 (eval_res = diffsig_eval(betatrue = simdat$truebeta, fit = fit, ci_level = 80))
 ```
 
-<!-- It is ideal to have results with coverage greater than 80% or mean RMSE -->
-<!-- less than 0.1. In our example, we can see that the coverage percentage -->
-<!-- is `r round(eval_res$perc_coverage,2)*100`% and mean RMSE around -->
-<!-- `r round(eval_res$mean_rmse,2)` which means that we acquired a good -->
-<!-- estimation. Coverage and RMSE can be improved by increasing the sample -->
-<!-- size which increases the power of the model. -->
+It is ideal to have results with coverage greater than 80% or mean RMSE
+less than 0.1. In our example, we can see that the coverage percentage
+is `r round(eval_res$perc_coverage,2)*100`% and mean RMSE around
+`r round(eval_res$mean_rmse,2)` which means that we acquired a good
+estimation. Coverage and RMSE can be improved by increasing the sample
+size which increases the power of the model.
 
 # Plotting associations
 
@@ -198,12 +202,12 @@ signatures and `M` risk factors, the rows are labelled with the
 signatures with `signature_labels` and are divided and colored for each
 risk factor with `riskfactor_labels`.
 
-```{r}
+```{r fig.width=3, fig.height=8, fig.align='center'}
 numpars = prod(dim(simdat$truebeta)) #15
 diffsig_plot(fit, 
              pars=1:numpars, 
              ci_level = 80,
-             signature_labels = c("SBS1","SBS2","SBS3","SBS5","SBS13"), 
+             signature_labels = c("SBS2","SBS3","SBS13"), 
              riskfactor_labels = c("intercept","cont1","cont2"),
              ncol=1, outlist = F)
 ```
@@ -225,20 +229,20 @@ In addition,
     specified `ncol`. If set to `TRUE`, the output will be a list of
     individual plots for each risk factor.
 
-```{r}
+```{r fig.height=3, fig.width=9}
 diffsig_plot(fit, 
              pars=1:numpars, 
              ci_level = 80,
-             signature_labels = c("SBS1","SBS2","SBS3","SBS5","SBS13"), 
+             signature_labels = c("SBS2","SBS3","SBS13"),
              riskfactor_labels = c("intercept","cont1","cont2"),
              ncol=3, outlist = F)
 ```
 
-```{r}
+```{r fig.height=3, fig.width=3, fig.align='center'}
 diffsig_plot(fit, 
              pars=1:numpars, 
              ci_level = 80,
-             signature_labels = c("SBS1","SBS2","SBS3","SBS5","SBS13"), 
+             signature_labels = c("SBS2","SBS3","SBS13"),
              riskfactor_labels = c("intercept","cont1","cont2"),
              ncol=1, outlist = T)
 ```
@@ -246,11 +250,11 @@ diffsig_plot(fit,
 The colors for the segments and estimation points can also be tailored
 based on preference by specifying `colors` and `est_color` parameters.
 
-```{r}
+```{r fig.width=3, fig.height=8, fig.align='center'}
 diffsig_plot(fit, 
              pars=1:numpars, 
              ci_level = 80,
-             signature_labels = c("SBS1","SBS2","SBS3","SBS5","SBS13"), 
+             signature_labels = c("SBS2","SBS3","SBS13"),
              riskfactor_labels = c("intercept","cont1","cont2"),
              colors=c("#D81B60","#1E88E5","#FFC107"),
              est_color="#F5F3EF",
