@@ -6,7 +6,10 @@
 #' @param ci_level a 2-dimension vector of lower/upper credible interval
 #' @param ... Arguments passed to `rstan::stan` (e.g. thin, init, ...).
 #' @return An object of class `stanfit` returned by `rstan::stan`
-#' @example diffsig_eval(simdat$beta, fit,)
+#' @examples
+#' data(simdat)
+#' data(fit)
+#' diffsig_eval(simdat$beta, fit, ci_level=80)
 #'
 diffsig_eval <- function(betatrue, fit, ci_level=80, ...) {
 

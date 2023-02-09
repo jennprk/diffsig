@@ -15,7 +15,9 @@
 #' @import dirmult
 #' @import stats
 #' @return A list of simulated beta, mutational count (Y), and risk factor (X)
-#' @example simdat_gen(N=100, K=5, truetau=100, C=C_k, binary=1)
+#' @examples
+#' data(cosmic_subset)
+#' simdat_gen(N=100, K=5, truetau=100, C=C_k, binary=1)
 #'
 simdat_gen <- function(N=100,K=5,truetau=100, C,
                        continuous=NA,binary=NA,categorical=NA, cat_levels=NA,

@@ -27,3 +27,9 @@ An object of class \code{stanfit} returned by \code{rstan::stan}
 \description{
 Hierarchical Bayesian Modeling with Stan
 }
+\examples{
+data(simdat)
+data(C_k)
+diffsig_fit(simdat$X, simdat$Y, C_k, pars="beta")
+
+}

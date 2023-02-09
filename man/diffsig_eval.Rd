@@ -21,3 +21,9 @@ An object of class \code{stanfit} returned by \code{rstan::stan}
 \description{
 Diffsig coverage and root mean squared error (RMSE) calculation function
 }
+\examples{
+data(simdat)
+data(fit)
+diffsig_eval(simdat$beta, fit, ci_level=80)
+
+}

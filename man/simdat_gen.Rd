@@ -44,3 +44,8 @@ A list of simulated beta, mutational count (Y), and risk factor (X)
 \description{
 Simulation data generator to test diffsig
 }
+\examples{
+data(cosmic_subset)
+simdat_gen(N=100, K=5, truetau=100, C=C_k, binary=1)
+
+}

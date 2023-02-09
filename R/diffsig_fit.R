@@ -10,7 +10,10 @@
 #' @param ... arguments passed to `rstan::stan` (e.g. thin, init, ...).
 #' @importFrom rstan sampling summary
 #' @return An object of class `stanfit` returned by `rstan::stan`
-#' @example diffsig_fit(simdat$X, simdat$Y, C_k, pars="beta")
+#' @examples
+#' data(simdat)
+#' data(C_k)
+#' diffsig_fit(simdat$X, simdat$Y, C_k, pars="beta")
 #'
 diffsig_fit <- function(X, Y, C, beta_sd, pars=c('beta'), include = T, ...) {
   start = Sys.time()
