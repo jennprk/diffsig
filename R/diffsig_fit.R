@@ -8,10 +8,9 @@
 #' @param pars desired parameters from `stanfit` to save. Default is "beta" (`pars="beta"`), but can also include parameters such as "tau".
 #' @param include passes on to `include` in `rstan::sampling`. Default set as `TRUE`.
 #' @param ... arguments passed to `rstan::stan` (e.g. thin, init, ...).
-#'
 #' @importFrom rstan sampling summary
-#'
 #' @return An object of class `stanfit` returned by `rstan::stan`
+#' @example diffsig_fit(simdat$X, simdat$Y, C_k, pars="beta")
 #'
 diffsig_fit <- function(X, Y, C, beta_sd, pars=c('beta'), include = T, ...) {
   start = Sys.time()

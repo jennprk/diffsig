@@ -9,7 +9,7 @@ output:
 abstract: |
   Diffsig provides estimation of the associations between mutational signatures
   and risk factors to help better understand the cancer development process. 
-  Diffsig generates the associations using a hierarchical Bayesian
+  It generates the associations using a hierarchical Bayesian
   Dirichlet-Multinomial model with a set of mutational signatures, mutation 
   counts, and risk factors. Diffsig can test posterior estimates of the 
   associations with any type of discrete or continuous risk factors of interest
@@ -18,8 +18,7 @@ abstract: |
   Diffsig package version: `r packageVersion("diffsig")`
 bibliography: library.bib
 vignette: |
-  %\VignetteIndexEntry{diffsig - association of risk factors and 
-  mutational signatures}
+  %\VignetteIndexEntry{Diffsig: Associating Risk Factors With Mutational Signatures}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::html}
 editor_options: 
@@ -27,13 +26,13 @@ editor_options:
     wrap: 72
 ---
 
-```{r setup, echo=F, results="hide"}
+```{r setup, echo=FALSE, results="hide"}
 knitr::opts_chunk$set(cache=FALSE, message=FALSE, warning=FALSE)
 ```
 
-```{r, echo=T, results="hide"}
-library(diffsig, quietly = T)
-library(rstan, quietly = T)
+```{r, echo=TRUE, results="hide"}
+library(diffsig, quietly = TRUE)
+library(rstan, quietly = TRUE)
 ```
 
 # Introduction
@@ -49,7 +48,7 @@ The authors of the associated [Diffsig manuscript]() [@diffsig] are:
 
 # Data simulation
 
-The purpose of this vignette is to demonstrate the steps of *Diffsig*.
+The purpose of this vignette is to demonstrate the steps of *diffsig*.
 For that, in this vignette, we work on simulated mutational counts and
 risk factors instead of real datasets. The simulation process does not
 include steps of generating mutational count matrix from .vcf or .maf
@@ -73,8 +72,8 @@ K = 3
 truetau = 100
 ```
 
-```{r eval=F}
-C = read.table("https://cancer.sanger.ac.uk/signatures/documents/453/COSMIC_v3.2_SBS_GRCh38.txt", header = T, row.names = 1)
+```{r eval=FALSE}
+C = read.table("https://cancer.sanger.ac.uk/signatures/documents/453/COSMIC_v3.2_SBS_GRCh38.txt", header = TRUE, row.names = 1)
 C_k =  C[,c("SBS2","SBS3","SBS13")]
 ```
 
@@ -94,7 +93,7 @@ on the types of risk factors to be included:
 So, for example, if you would like to include 2 continuous variable, you
 would do:
 
-```{r eval=F}
+```{r eval=FALSE}
 set.seed(123)
 simdat = simdat_gen(N=N, K=K, truetau=truetau, C=C_k,
            continuous=2, binary=NA, categorical=NA, cat_levels=NA, seed=123)
@@ -107,7 +106,7 @@ data(simdat)
 Or, if you want to include 1 binary and 2 categorical variable with 3
 and 4 levels:
 
-```{r, eval=F}
+```{r, eval=FALSE}
 simdat = simdat_gen(N=N, K=K, truetau=truetau, C=C_k, 
            continuous=NA, binary=1, categorical=2, cat_levels=c(3,4))
 ```
@@ -116,7 +115,7 @@ Note that `continuous`, `binary`, `categorical`, `cat_levels` are set to
 `NULL` as default. Therefore, you do not need to specify anything for
 variables you wish not to include.
 
-```{r, eval=F}
+```{r, eval=FALSE}
 # Same as the above examples
 simdat_gen(N=N, K=K, truetau=truetau, C=C_k, continuous=2)
 simdat_gen(N=N, K=K, truetau=truetau, C=C_k, binary=1, categorical=2, cat_levels=c(3,4))
@@ -143,12 +142,12 @@ Once we obtain the mutation counts `Y`, risk factors `X`, and mutational
 signatures matrix `C`/`C_K`, we can estimate the association between
 risk factors and mutational signatures using the function `diffsig_fit`.
 
-```{r eval=F}
+```{r eval=FALSE}
 fit <- diffsig_fit(X=simdat$X, Y=simdat$Y, C=C_k, beta_sd=0.5,
                    chains=2, cores=2, seed=123)
 ```
 
-```{r, echo=F}
+```{r, echo=FALSE}
 data(fit.rda)
 ```
 
@@ -213,17 +212,17 @@ signatures and `M` risk factors, the rows are labelled with the
 signatures with `signature_labels` and are divided and colored for each
 risk factor with `riskfactor_labels`.
 
-```{r, fig.width=3, fig.height=8, fig.align='center'}
+```{r, fig.width=3, fig.height=8, fig.align='center', eval=FALSE}
 numpars = prod(dim(simdat$truebeta)) #15
 diffsig_plot(fit, 
              pars=1:numpars, 
              ci_level = 80,
              signature_labels = c("SBS2","SBS3","SBS13"), 
              riskfactor_labels = c("intercept","cont1","cont2"),
-             ncol=1, outlist = F)
+             ncol=1, outlist = FALSE)
 ```
 
-```{r, echo=F}
+```{r, echo=FALSE}
 knitr::include_graphics("./figures/plot1.png")
 ```
 
@@ -244,30 +243,30 @@ In addition,
     specified `ncol`. If set to `TRUE`, the output will be a list of
     individual plots for each risk factor.
 
-```{r fig.height=3, fig.width=9, eval=F}
+```{r fig.height=3, fig.width=9, eval=FALSE}
 diffsig_plot(fit, 
              pars=1:numpars, 
              ci_level = 80,
              signature_labels = c("SBS2","SBS3","SBS13"),
              riskfactor_labels = c("intercept","cont1","cont2"),
-             ncol=3, outlist = F)
+             ncol=3, outlist = FALSE)
 ```
 
-```{r, echo=F}
+```{r, echo=FALSE}
 knitr::include_graphics("./figures/plot2.png")
 ```
 
 
-```{r fig.height=3, fig.width=3, fig.align='center', eval=F}
+```{r fig.height=3, fig.width=3, fig.align='center', eval=FALSE}
 diffsig_plot(fit, 
              pars=1:numpars, 
              ci_level = 80,
              signature_labels = c("SBS2","SBS3","SBS13"),
              riskfactor_labels = c("intercept","cont1","cont2"),
-             ncol=1, outlist = T)
+             ncol=1, outlist = TRUE)
 ```
 
-```{r echo=F}
+```{r echo=FALSE}
 data(p3)
 p
 ```
@@ -275,7 +274,7 @@ p
 The colors for the segments and estimation points can also be tailored
 based on preference by specifying `colors` and `est_color` parameters.
 
-```{r fig.width=3, fig.height=8, fig.align='center', eval=F}
+```{r fig.width=3, fig.height=8, fig.align='center', eval=FALSE}
 diffsig_plot(fit, 
              pars=1:numpars, 
              ci_level = 80,
@@ -287,7 +286,7 @@ diffsig_plot(fit,
              outlist=FALSE)
 ```
 
-```{r echo=F}
+```{r echo=FALSE}
 knitr::include_graphics("./figures/plot4.png")
 ```
 

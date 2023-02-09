@@ -1,6 +1,6 @@
 Package: diffsig
-Title: Difference Test on Mutational Signatures in Risk Factors with Hierarchical Bayesian Modeling
-Version: 0.0.0.9000
+Title: Diffsig: Associating Risk Factors With Mutational Signatures
+Version: 0.99.0
 Authors@R: 
     c(person("Ji-Eun", "Park",email= "jieunprk@gmail.com", role = c("aut", "cre")),
       person("Markia", "Smith", role = "aut"),
@@ -10,14 +10,21 @@ Authors@R:
       person("Melissa", "Troester", role = "aut"),
       person("Katherin", "Hoadley", role = "aut"),
       person("Michael", "Love", role = "aut"))
-Description: diffsig allows to test the difference in association between mutational signatures and risk factors based on hierarchical Bayesian Dirichlet-Multinomial modeling.
-License: GPL (>=2)
+Description: Diffsig provides estimation of the associations between mutational signatures
+  and risk factors to help better understand the cancer development process. 
+  It generates the associations using a hierarchical Bayesian
+  Dirichlet-Multinomial model with a set of mutational signatures, mutation 
+  counts, and risk factors. Diffsig can test posterior estimates of the 
+  associations with any type of discrete or continuous risk factors of interest
+  while considering the possible variance derived by datasets sequenced with 
+  various read depth.
+License: GPL-2
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Biarch: true
 Depends: 
-    R (>= 3.4.0)
+    R (>= 4.1.0)
 Imports: 
     methods,
     ggplot2,
@@ -37,3 +44,4 @@ LinkingTo:
     rstan (>= 2.18.1),
     StanHeaders (>= 2.18.0)
 SystemRequirements: GNU make
+biocViews: mutational signatures, Bayesian model, somatic mutations, cancer etiology, risk factors
