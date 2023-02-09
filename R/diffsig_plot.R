@@ -10,7 +10,6 @@
 #' @param ncol number of columns that indicates how to align the plots e.g. ncol=1: set plots vertical; ncol=(# of risk factors) set plots horizontal
 #' @param outlist default FALSE indicates to combine plots for all risk factors into one. outlist=T indicates to output as a list of plots
 #' @param ci_level numerical value for credible interval percentage (default 80)
-#' @param ... Arguments passed to ggplot
 #' @import ggplot2
 #' @import cowplot
 #' @import grid

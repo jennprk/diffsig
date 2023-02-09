@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Ji-Eun Park, Michael Love" />
+
+<meta name="date" content="2023-02-08" />
+
+<title>Diffsig: Associating Risk Factors With Mutational Signatures</title>
+
+<script src="diffsig_files/header-attrs-2.20/header-attrs.js"></script>
+<script src="diffsig_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="diffsig_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="diffsig_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="diffsig_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="diffsig_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="diffsig_files/navigation-1.1/tabsets.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+<style type="text/css">
+  p.abstract{
+    text-align: center;
+    font-weight: bold;
+  }
+  div.abstract{
+    margin: auto;
+    width: 90%;
+  }
+</style>
+
+
+<style type="text/css">
+/* for pandoc --citeproc since 2.11 */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Diffsig: Associating Risk Factors With
+Mutational Signatures</h1>
+<h4 class="author">Ji-Eun Park, Michael Love</h4>
+<h4 class="date">02/08/2023</h4>
+<div class="abstract">
+<p class="abstract">Abstract</p>
+<p>Diffsig provides estimation of the associations between mutational
+signatures and risk factors to help better understand the cancer
+development process. Diffsig generates the associations using a
+hierarchical Bayesian Dirichlet-Multinomial model with a set of
+mutational signatures, mutation counts, and risk factors. Diffsig can
+test posterior estimates of the associations with any type of discrete
+or continuous risk factors of interest while considering the possible
+variance derived by datasets sequenced with various read depth. Diffsig
+package version: 0.0.0.9000</p>
+</div>
+
+</div>
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">cache=</span><span class="cn">FALSE</span>, <span class="at">message=</span><span class="cn">FALSE</span>, <span class="at">warning=</span><span class="cn">FALSE</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(diffsig, <span class="at">quietly =</span> T)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rstan, <span class="at">quietly =</span> T)</span></code></pre></div>
+<pre><code>## rstan (Version 2.21.8, GitRev: 2e1f913d3ca3)</code></pre>
+<pre><code>## For execution on a local, multicore CPU with excess RAM we recommend calling
+## options(mc.cores = parallel::detectCores()).
+## To avoid recompilation of unchanged Stan programs, we recommend calling
+## rstan_options(auto_write = TRUE)</code></pre>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p><em>Diffsig</em> provides Bayesian analysis of the association
+between risk factors and mutational signatures, making use of the Stan
+and RStan software packages for inference <span
+class="citation">(Carpenter et al. 2017; Stan Development Team
+2020)</span>.</p>
+<p>The authors of the associated <a href="">Diffsig manuscript</a> <span
+class="citation">(<strong>diffsig?</strong>)</span> are:</p>
+<blockquote>
+<p>Ji-Eun Park*, Markia Smith, Sarah Van Alsten, Andrea Walens, Di Wu,
+Katherine A. Hoadley, Melissa A. Troester, Michael I. Love</p>
+</blockquote>
+</div>
+<div id="data-simulation" class="section level1">
+<h1>Data simulation</h1>
+<p>The purpose of this vignette is to demonstrate the steps of
+<em>Diffsig</em>. For that, in this vignette, we work on simulated
+mutational counts and risk factors instead of real datasets. The
+simulation process does not include steps of generating mutational count
+matrix from .vcf or .maf files. Details for the count matrix generating
+process could be found in the manuscript <a href="">public data
+preprocess</a>.</p>
+<p>A number of parameters need to be set to generate a simulated
+dataset: + <code>N</code>: number of samples (integer) + <code>K</code>:
+number of signatures (integer) + <code>truetau</code>: true value of tau
+(numeric) + <code>C_k</code>: signature matrix (96xK matrix)</p>
+<p>In our analysis, we used the COSMIC V3.2 signatures loaded from <a
+href="https://cancer.sanger.ac.uk/signatures/sbs/">COSMIC</a> where we
+selected 5 signatures that are known to be associated with breast cancer
+to avoid selecting an arbitrary set of signatures. If you have your own
+signature matrix, you can load your signature matrix object named as
+<code>C_k</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>N <span class="ot">=</span> <span class="dv">50</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>K <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>truetau <span class="ot">=</span> <span class="dv">100</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>C <span class="ot">=</span> <span class="fu">read.table</span>(<span class="st">&quot;https://cancer.sanger.ac.uk/signatures/documents/453/COSMIC_v3.2_SBS_GRCh38.txt&quot;</span>, <span class="at">header =</span> T, <span class="at">row.names =</span> <span class="dv">1</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>C_k <span class="ot">=</span>  C[,<span class="fu">c</span>(<span class="st">&quot;SBS2&quot;</span>,<span class="st">&quot;SBS3&quot;</span>,<span class="st">&quot;SBS13&quot;</span>)]</span></code></pre></div>
+<p>Now, there are some additional parameters that should be set
+depending on the types of risk factors to be included:</p>
+<ul>
+<li>continuous: number of continuous variables (default
+<code>NULL</code>)</li>
+<li>binary: number of binary variables (default <code>NULL</code>)</li>
+<li>categorical: number of categorical variables (default
+<code>NULL</code>)</li>
+<li>cat_levels: vector of number of levels for each categorical
+variables (default <code>NULL</code>)</li>
+</ul>
+<p>So, for example, if you would like to include 2 continuous variable,
+you would do:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>simdat <span class="ot">=</span> <span class="fu">simdat_gen</span>(<span class="at">N=</span>N, <span class="at">K=</span>K, <span class="at">truetau=</span>truetau, <span class="at">C=</span>C_k,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">continuous=</span><span class="dv">2</span>, <span class="at">binary=</span><span class="cn">NA</span>, <span class="at">categorical=</span><span class="cn">NA</span>, <span class="at">cat_levels=</span><span class="cn">NA</span>, <span class="at">seed=</span><span class="dv">123</span>)</span></code></pre></div>
+<p>Or, if you want to include 1 binary and 2 categorical variable with 3
+and 4 levels:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>simdat <span class="ot">=</span> <span class="fu">simdat_gen</span>(<span class="at">N=</span>N, <span class="at">K=</span>K, <span class="at">truetau=</span>truetau, <span class="at">C=</span>C_k, </span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">continuous=</span><span class="cn">NA</span>, <span class="at">binary=</span><span class="dv">1</span>, <span class="at">categorical=</span><span class="dv">2</span>, <span class="at">cat_levels=</span><span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">4</span>))</span></code></pre></div>
+<p>Note that <code>continuous</code>, <code>binary</code>,
+<code>categorical</code>, <code>cat_levels</code> are set to
+<code>NULL</code> as default. Therefore, you do not need to specify
+anything for variables you wish not to include.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Same as the above examples</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">simdat_gen</span>(<span class="at">N=</span>N, <span class="at">K=</span>K, <span class="at">truetau=</span>truetau, <span class="at">C=</span>C_k, <span class="at">continuous=</span><span class="dv">2</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">simdat_gen</span>(<span class="at">N=</span>N, <span class="at">K=</span>K, <span class="at">truetau=</span>truetau, <span class="at">C=</span>C_k, <span class="at">binary=</span><span class="dv">1</span>, <span class="at">categorical=</span><span class="dv">2</span>, <span class="at">cat_levels=</span><span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">4</span>))</span></code></pre></div>
+<p>The <code>simdat</code> object includes the three components: true
+association <code>beta</code>, mutational counts <code>Y</code>, and
+risk factor matrix <code>X</code>.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(simdat<span class="sc">$</span>truebeta)</span></code></pre></div>
+<pre><code>##            [,1]       [,2]        [,3]
+## [1,] -1.0666667  1.2333333 -0.16666667
+## [2,] -0.3333333  0.2666667  0.06666667
+## [3,]  0.2666667 -1.1333333  0.86666667</code></pre>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(simdat<span class="sc">$</span>Y)</span></code></pre></div>
+<pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13] [,14]
+## [1,]    0    6    0    3    0    2    8    7    1     2     1     3     1     4
+## [2,]    0    5    0    3    0    1    9    1    0     1     0     2     0     5
+## [3,]    0    0    0    0    0    0    0    0    0     0     1     1     1     2
+## [4,]    1    6    0    1    0    2    6    3    0     0     0     0     1     3
+## [5,]    0    6    1    2    2    4   10    7    4     4     2     4     4     5
+## [6,]    0    3    0    4    0    1    4    2    1     1     0     1     1     1
+##      [,15] [,16] [,17] [,18] [,19] [,20] [,21] [,22] [,23] [,24] [,25] [,26]
+## [1,]     3     4     1     0     8     6     2     0     8     8     4     2
+## [2,]     4     7     2     0     5     7     2     1     8    11     5     3
+## [3,]     1     0     1     0     0     2     0     0     0     2     0     0
+## [4,]     2     3     0     0     7     5     2     0     8     2     3     0
+## [5,]     3     8     3     3    17     7     3     0     4     7     3     3
+## [6,]     1     2     2     0    10     3     0     0     3     1     2     1
+##      [,27] [,28] [,29] [,30] [,31] [,32] [,33] [,34] [,35] [,36] [,37] [,38]
+## [1,]     2     1     2     2     2     5     3     5    13     0    18     3
+## [2,]     1     0     2     1     2     4     2    10    13     0    28     4
+## [3,]     0     0     0     0     1     2     0     0     1     0     3     0
+## [4,]     0     1     1     1     0     4     1     2     6     0    14     2
+## [5,]     3     2     3     2     3    14     3     5    12     0    16     7
+## [6,]     2     1     0     1     2     5     1     7     8     0    10     6
+##      [,39] [,40] [,41] [,42] [,43] [,44] [,45] [,46] [,47] [,48] [,49] [,50]
+## [1,]     0     2     0    12     7    14     2     2     0     1     1     7
+## [2,]     2     0     0     8     5    17     3     1     0     0     0     7
+## [3,]     0     0     0     1     0     2     0     0     0     1     0     1
+## [4,]     1     1     0     4     3     8     0     0     0     0     0     2
+## [5,]     1     3     0     9     5    18     3     0     0     1     0     8
+## [6,]     2     1     2     7     4     6     2     0     1     1     0     3</code></pre>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(simdat<span class="sc">$</span>X)</span></code></pre></div>
+<pre><code>##               [,1]        [,2]      [,3]      [,4]      [,5]       [,6]
+##         1.00000000  1.00000000 1.0000000  1.000000  1.000000  1.0000000
+## X_cont -0.08668123 -0.09482601 0.2007369  1.280809 -1.679328  1.6839436
+## X_cont -1.24696075 -0.61472774 1.9520914 -1.272212  2.027136 -0.2805022
+##              [,7]      [,8]      [,9]      [,10]     [,11]    [,12]     [,13]
+##         1.0000000  1.000000 1.0000000  1.0000000  1.000000 1.000000 1.0000000
+## X_cont  0.5163816  2.508807 0.5609479  0.2549931 -1.011706 1.294792 0.8330080
+## X_cont -0.5516741 -0.916545 2.5826611 -1.5886070  0.602483 1.486121 0.7682811
+##              [,14]      [,15]      [,16]      [,17]      [,18]      [,19]
+##         1.00000000  1.0000000  1.0000000  1.0000000  1.0000000  1.0000000
+## X_cont -0.03424603 -0.7513888 -0.7013165 -0.1918858 -0.3090456 -1.0479283
+## X_cont  0.50210239  0.9588983 -0.1736199 -0.2651857 -1.0695596 -0.8711099
+##             [,20]     [,21]       [,22]      [,23]      [,24]      [,25]
+##         1.0000000 1.0000000  1.00000000  1.0000000  1.0000000  1.0000000
+## X_cont -0.0635118 1.0741931 -0.12253126 -1.1265081 -0.7849811  0.6946335
+## X_cont -1.7003414 0.7502294  0.00142119 -0.8120663 -0.3255682 -0.9282199
+##             [,26]     [,27]      [,28]      [,29]      [,30]      [,31]
+##         1.0000000  1.000000  1.0000000  1.0000000  1.0000000  1.0000000
+## X_cont -0.2944248 -1.270171 -0.5695445 -0.1068018  0.8932341 -0.1284385
+## X_cont -0.9237508 -0.439858 -0.3735272  0.1100549 -0.9111522 -0.7404804
+##             [,32]      [,33]      [,34]      [,35]      [,36]      [,37]
+##         1.0000000  1.0000000  1.0000000 1.00000000  1.0000000  1.0000000
+## X_cont  0.3451195 -3.1555966 -0.7389980 0.30256243 -1.1806037  0.4482177
+## X_cont -1.0696543  0.8034378  0.3683268 0.09845793  0.2559048 -0.5764823
+##             [,38]       [,39]     [,40]      [,41]      [,42]     [,43]
+##         1.0000000  1.00000000 1.0000000  1.0000000  1.0000000 1.0000000
+## X_cont  0.8080472 -0.14077476 1.2437694 -0.8990133  0.4080235 0.4177890
+## X_cont -0.7429235 -0.04732575 0.2035231  1.5559518 -0.5461145 0.3745331
+##              [,44]      [,45]      [,46]      [,47]      [,48]    [,49]
+##         1.00000000  1.0000000 1.00000000  1.0000000 1.00000000 1.000000
+## X_cont -0.85182520 -1.2774688 0.04894367 -0.4047213 1.68363673 1.229474
+## X_cont -0.09170723  0.5001165 0.22873570  2.1382982 0.05395435 1.416977
+##             [,50]
+##         1.0000000
+## X_cont  0.2922042
+## X_cont -0.6598209</code></pre>
+</div>
+<div id="association-estimation" class="section level1">
+<h1>Association estimation</h1>
+<p>Once we obtain the mutation counts <code>Y</code>, risk factors
+<code>X</code>, and mutational signatures matrix
+<code>C</code>/<code>C_K</code>, we can estimate the association between
+risk factors and mutational signatures using the function
+<code>diffsig_fit</code>.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">diffsig_fit</span>(<span class="at">X=</span>simdat<span class="sc">$</span>X, <span class="at">Y=</span>simdat<span class="sc">$</span>Y, <span class="at">C=</span>C_k, <span class="at">beta_sd=</span><span class="fl">0.5</span>,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">chains=</span><span class="dv">2</span>, <span class="at">cores=</span><span class="dv">2</span>, <span class="at">seed=</span><span class="dv">123</span>)</span></code></pre></div>
+<pre><code>## [1] &quot;total computation time 1.39149031639099mins&quot;</code></pre>
+<p>This runs the hierarchical Bayesian model that yields the posterior
+estimation of the associations between the risk factors and mutational
+signature <code>beta</code>. In our analysis, we use 4 chains and 4
+cores with 2000 iterations.</p>
+<p>Depending on your interest, sample-signature association from
+Dirichlet sampling <code>phi</code> and the precision parameter
+<code>tau</code> could be extracted from the model by including
+<code>pars=c("beta","tau","phi")</code> in
+<code>diffsig_fit()</code>.</p>
+</div>
+<div id="convergence-examination" class="section level1">
+<h1>Convergence examination</h1>
+<p>In order to check if the model converged, we recommend to check the
+R-hat convergence measure.<span class="citation">(Carpenter et al. 2017;
+Stan Development Team 2020)</span> This diagnostic measure shows how
+well the posterior estimates are converging and mixing in split chains.
+<code>rstan</code> recommends to use samples with R-hat values less than
+1.05 and it seems that our simulation has a well-converged result with
+all R-hats below 1.01. <code>traceplots</code> from <code>rstan</code>
+is another common way to check convergence. The <code>traceplot()</code>
+function shows how well the chains are mixing across chains, where a
+poorly mixed result will show divergence between chains. Traceplots from
+our simulated data shows a nicely mixed and well-converged result across
+all 4 chains.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>mu_tau_summary <span class="ot">&lt;-</span> rstan<span class="sc">::</span><span class="fu">summary</span>(fit, <span class="at">pars =</span> <span class="fu">c</span>(<span class="st">&quot;beta&quot;</span>), <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.9</span>))<span class="sc">$</span>summary</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">Rhat =</span>mu_tau_summary[,<span class="st">&quot;Rhat&quot;</span>])</span></code></pre></div>
+<pre><code>##               Rhat
+## beta[1,1] 1.000426
+## beta[1,2] 1.000691
+## beta[1,3] 1.001199
+## beta[2,1] 1.001314
+## beta[2,2] 1.001045
+## beta[2,3] 1.001486
+## beta[3,1] 1.000884
+## beta[3,2] 1.001119
+## beta[3,3] 1.000899</code></pre>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>rstan<span class="sc">::</span><span class="fu">traceplot</span>(fit, <span class="at">pars=</span><span class="st">&quot;beta&quot;</span>)</span></code></pre></div>
+<p><img src="diffsig_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>Additionally, <em>Diffsig</em> provides a function
+<code>diffsig_eval</code> to generate evaluation for simulated data
+results. The function outputs a list of three objects: summary
+statistics matrix <code>estimate</code> with the desired credible
+interval width and two measurements <code>perc_coverage</code> and
+<code>mean_rmse</code>. + <code>perc_coverage</code>: percentage of true
+values belonging within credible interval + <code>mean_rmse</code>:
+average RMSE of each estimated <code>beta</code> values<br />
+The width of the credible interval can be specified with
+<code>credibleInterval</code> where in default is set to
+80%(<code>ci_level=80</code>).</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>(<span class="at">eval_res =</span> <span class="fu">diffsig_eval</span>(<span class="at">betatrue =</span> simdat<span class="sc">$</span>truebeta, <span class="at">fit =</span> fit, <span class="at">ci_level =</span> <span class="dv">80</span>))</span></code></pre></div>
+<pre><code>## [[1]]
+##      truebeta    estimate         10%         90% contain        rmse
+## 1 -1.06666667 -1.07908876 -1.45735900 -0.71041033    TRUE 0.012422098
+## 2  1.23333333  1.24848774  0.88144166  1.62430041    TRUE 0.015154402
+## 3 -0.16666667 -0.16845126 -0.52895888  0.20697072    TRUE 0.001784592
+## 4 -0.33333333 -0.31503494 -0.68325749  0.05252355    TRUE 0.018298398
+## 5  0.26666667  0.23396240 -0.13808199  0.60471371    TRUE 0.032704262
+## 6  0.06666667  0.05188677 -0.31452263  0.41729709    TRUE 0.014779893
+## 7  0.26666667  0.32825088 -0.04092641  0.73490293    TRUE 0.061584212
+## 8 -1.13333333 -1.19617056 -1.57630794 -0.79921060    TRUE 0.062837227
+## 9  0.86666667  0.87401703  0.49135026  1.26533768    TRUE 0.007350365
+## 
+## $perc_coverage
+## [1] 1
+## 
+## $mean_rmse
+## [1] 0.02521283</code></pre>
+<p>It is ideal to have results with coverage greater than 80% or mean
+RMSE less than 0.1. In our example, we can see that the coverage
+percentage is 100% and mean RMSE around 0.03 which means that we
+acquired a good estimation. Coverage and RMSE can be improved by
+increasing the sample size which increases the power of the model.</p>
+</div>
+<div id="plotting-associations" class="section level1">
+<h1>Plotting associations</h1>
+<p>Once we observe good convergence, we can then interpret the
+estimations we obtained by plotting the posterior estimates.
+<code>diffsig_plot()</code> is a modified version of the
+<code>stan_plot()</code> function from the <code>rstan</code> package
+which allows to group the segments by groups (or risk factors) for
+easier visualization. Since each of the estimations are for the
+<code>K</code> signatures and <code>M</code> risk factors, the rows are
+labelled with the signatures with <code>signature_labels</code> and are
+divided and colored for each risk factor with
+<code>riskfactor_labels</code>.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>numpars <span class="ot">=</span> <span class="fu">prod</span>(<span class="fu">dim</span>(simdat<span class="sc">$</span>truebeta)) <span class="co">#15</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">diffsig_plot</span>(fit, </span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">pars=</span><span class="dv">1</span><span class="sc">:</span>numpars, </span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">ci_level =</span> <span class="dv">80</span>,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">signature_labels =</span> <span class="fu">c</span>(<span class="st">&quot;SBS2&quot;</span>,<span class="st">&quot;SBS3&quot;</span>,<span class="st">&quot;SBS13&quot;</span>), </span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">riskfactor_labels =</span> <span class="fu">c</span>(<span class="st">&quot;intercept&quot;</span>,<span class="st">&quot;cont1&quot;</span>,<span class="st">&quot;cont2&quot;</span>),</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">ncol=</span><span class="dv">1</span>, <span class="at">outlist =</span> F)</span></code></pre></div>
+<p><img src="diffsig_files/figure-html/unnamed-chunk-13-1.png" width="288" style="display: block; margin: auto;" /></p>
+<p>Each row shows the estimated association between each signature and
+risk factor. The circle points represent the point estimations, black
+lines represent the credible intervals (80% CI in this case), and the
+colored segments represent the 25% and 75% quantile, respectively.</p>
+<p>In addition,</p>
+<ul>
+<li><code>ncol</code>: by default is set to 1, which indicates the plots
+for each risk factor will be printed vertically in 1 column. If
+<code>ncol</code> is set to the number of risk factors (including
+intercept), plots will be printed horizontally. <code>ncol</code> must
+be an integer between 1 to the number of risk factors.</li>
+<li><code>outlist</code>: by default is set to <code>FALSE</code>, which
+indicates the final output is a single plot with all plots aligned based
+on the specified <code>ncol</code>. If set to <code>TRUE</code>, the
+output will be a list of individual plots for each risk factor.</li>
+</ul>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">diffsig_plot</span>(fit, </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>             <span class="at">pars=</span><span class="dv">1</span><span class="sc">:</span>numpars, </span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">ci_level =</span> <span class="dv">80</span>,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">signature_labels =</span> <span class="fu">c</span>(<span class="st">&quot;SBS2&quot;</span>,<span class="st">&quot;SBS3&quot;</span>,<span class="st">&quot;SBS13&quot;</span>),</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">riskfactor_labels =</span> <span class="fu">c</span>(<span class="st">&quot;intercept&quot;</span>,<span class="st">&quot;cont1&quot;</span>,<span class="st">&quot;cont2&quot;</span>),</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">ncol=</span><span class="dv">3</span>, <span class="at">outlist =</span> F)</span></code></pre></div>
+<p><img src="diffsig_files/figure-html/unnamed-chunk-14-1.png" width="864" /></p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">diffsig_plot</span>(fit, </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>             <span class="at">pars=</span><span class="dv">1</span><span class="sc">:</span>numpars, </span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">ci_level =</span> <span class="dv">80</span>,</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">signature_labels =</span> <span class="fu">c</span>(<span class="st">&quot;SBS2&quot;</span>,<span class="st">&quot;SBS3&quot;</span>,<span class="st">&quot;SBS13&quot;</span>),</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">riskfactor_labels =</span> <span class="fu">c</span>(<span class="st">&quot;intercept&quot;</span>,<span class="st">&quot;cont1&quot;</span>,<span class="st">&quot;cont2&quot;</span>),</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">ncol=</span><span class="dv">1</span>, <span class="at">outlist =</span> T)</span></code></pre></div>
+<pre><code>## [[1]]</code></pre>
+<p><img src="diffsig_files/figure-html/unnamed-chunk-15-1.png" width="288" style="display: block; margin: auto;" /></p>
+<pre><code>## 
+## [[2]]</code></pre>
+<p><img src="diffsig_files/figure-html/unnamed-chunk-15-2.png" width="288" style="display: block; margin: auto;" /></p>
+<pre><code>## 
+## [[3]]</code></pre>
+<p><img src="diffsig_files/figure-html/unnamed-chunk-15-3.png" width="288" style="display: block; margin: auto;" /></p>
+<p>The colors for the segments and estimation points can also be
+tailored based on preference by specifying <code>colors</code> and
+<code>est_color</code> parameters.</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">diffsig_plot</span>(fit, </span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>             <span class="at">pars=</span><span class="dv">1</span><span class="sc">:</span>numpars, </span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">ci_level =</span> <span class="dv">80</span>,</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">signature_labels =</span> <span class="fu">c</span>(<span class="st">&quot;SBS2&quot;</span>,<span class="st">&quot;SBS3&quot;</span>,<span class="st">&quot;SBS13&quot;</span>),</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">riskfactor_labels =</span> <span class="fu">c</span>(<span class="st">&quot;intercept&quot;</span>,<span class="st">&quot;cont1&quot;</span>,<span class="st">&quot;cont2&quot;</span>),</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">colors=</span><span class="fu">c</span>(<span class="st">&quot;#D81B60&quot;</span>,<span class="st">&quot;#1E88E5&quot;</span>,<span class="st">&quot;#FFC107&quot;</span>),</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">est_color=</span><span class="st">&quot;#F5F3EF&quot;</span>,</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">ncol=</span><span class="dv">1</span>,</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>             <span class="at">outlist=</span><span class="cn">FALSE</span>)</span></code></pre></div>
+<p><img src="diffsig_files/figure-html/unnamed-chunk-16-1.png" width="288" style="display: block; margin: auto;" /></p>
+</div>
+<div id="interpreting-the-results" class="section level1">
+<h1>Interpreting the results</h1>
+<p>Note that estimates must be interpreted within each risk factor and
+not be compared between estimates for different risk factors. For
+example, let’s call the association between SBS1 and SBS2 with risk
+factor 1 as <span class="math inline">\(\beta_{11}\)</span> and <span
+class="math inline">\(\beta_{12}\)</span>, respectively, and association
+between SBS1 and SBS2 with risk factor 2 as <span
+class="math inline">\(\beta_{21}\)</span> and <span
+class="math inline">\(\beta_{22}\)</span> ,respectively. From the result
+we can see that $<em>{11}=$0.05, $</em>{12}=$0.33, <span
+class="math inline">\(\beta_{21}=\)</span>NA, and <span
+class="math inline">\(\beta_{22}=\)</span>NA. What we can compare is
+only between (<span class="math inline">\(\beta_{11}\)</span> and <span
+class="math inline">\(\beta_{12}\)</span>) or between (<span
+class="math inline">\(\beta_{21}\)</span> and <span
+class="math inline">\(\beta_{22}\)</span>), e.g. <span
+class="math inline">\(\beta_{11}&lt;\beta_{12}\)</span> so risk factor 1
+has higher association with SBS2 than 1. What we cannot compare is
+across (<span class="math inline">\(\beta_{11}\)</span>,<span
+class="math inline">\(\beta_{12}\)</span>) and (<span
+class="math inline">\(\beta_{21}\)</span>,<span
+class="math inline">\(\beta_{22}\)</span>), e.g. we cannot say that risk
+factor 1 is more associated with SBS2 because <span
+class="math inline">\(\beta_{12}&gt;\beta_{22}\)</span>. Reasons for
+such limitation can be found from the Discussion of our paper (link)</p>
+</div>
+<div id="session-info" class="section level1">
+<h1>Session info</h1>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
+<pre><code>## R version 4.1.2 (2021-11-01)
+## Platform: x86_64-apple-darwin17.0 (64-bit)
+## Running under: macOS Catalina 10.15.7
+## 
+## Matrix products: default
+## BLAS:   /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRblas.0.dylib
+## LAPACK: /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRlapack.dylib
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+## [1] fastDummies_1.6.3    dirmult_0.1.3-5      rstan_2.21.8        
+## [4] ggplot2_3.4.0        StanHeaders_2.21.0-7 diffsig_0.0.0.9000  
+## 
+## loaded via a namespace (and not attached):
+##  [1] tidyselect_1.2.0   xfun_0.36          bslib_0.4.2        colorspace_2.1-0  
+##  [5] vctrs_0.5.2        generics_0.1.3     htmltools_0.5.4    stats4_4.1.2      
+##  [9] loo_2.5.1          yaml_2.3.7         utf8_1.2.2         rlang_1.0.6       
+## [13] pkgbuild_1.4.0     jquerylib_0.1.4    pillar_1.8.1       withr_2.5.0       
+## [17] glue_1.6.2         DBI_1.1.3          matrixStats_0.63.0 lifecycle_1.0.3   
+## [21] munsell_0.5.0      gtable_0.3.1       codetools_0.2-18   evaluate_0.20     
+## [25] labeling_0.4.2     inline_0.3.19      knitr_1.42         callr_3.7.3       
+## [29] fastmap_1.1.0      ps_1.7.2           parallel_4.1.2     fansi_1.0.4       
+## [33] highr_0.10         Rcpp_1.0.10        scales_1.2.1       cachem_1.0.6      
+## [37] RcppParallel_5.1.6 jsonlite_1.8.4     farver_2.1.1       gridExtra_2.3     
+## [41] digest_0.6.31      processx_3.8.0     dplyr_1.0.10       cowplot_1.1.1     
+## [45] grid_4.1.2         cli_3.6.0          tools_4.1.2        magrittr_2.0.3    
+## [49] sass_0.4.5         tibble_3.1.8       crayon_1.5.2       pkgconfig_2.0.3   
+## [53] prettyunits_1.1.1  assertthat_0.2.1   rmarkdown_2.20     rstudioapi_0.14   
+## [57] R6_2.5.1           compiler_4.1.2</code></pre>
+</div>
+<div id="references" class="section level1 unnumbered">
+<h1 class="unnumbered">References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-stan" class="csl-entry">
+Carpenter, Bob, Andrew Gelman, Matthew Hoffman, Daniel Lee, Ben
+Goodrich, Michael Betancourt, Marcus Brubaker, Jiqiang Guo, Peter Li,
+and Allen Riddell. 2017. <span>“Stan: A Probabilistic Programming
+Language.”</span> <em>Journal of Statistical Software, Articles</em> 76
+(1): 1–32. <a
+href="https://doi.org/10.18637/jss.v076.i01">https://doi.org/10.18637/jss.v076.i01</a>.
+</div>
+<div id="ref-rstan" class="csl-entry">
+Stan Development Team. 2020. <span>“<span>RStan</span>: The
+<span>R</span> Interface to <span>Stan</span>.”</span> <a
+href="http://mc-stan.org/">http://mc-stan.org/</a>.
+</div>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

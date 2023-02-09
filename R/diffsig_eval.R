@@ -1,14 +1,13 @@
 #' Diffsig coverage and root mean squared error (RMSE) calculation function
 #'
 #' @export
-#' @param truebeta a vector of true betas
+#' @param betatrue a vector of true betas
 #' @param fit a `stanfit` object returned by `rstan::stan`
-#' @param coverage a 2-dimension vector of lower/upper credible interval
-#' @param beta_sd standard deviation for sampling hyperparameter beta
+#' @param ci_level a 2-dimension vector of lower/upper credible interval
 #' @param ... Arguments passed to `rstan::stan` (e.g. thin, init, ...).
 #' @return An object of class `stanfit` returned by `rstan::stan`
 #'
-diffsig_eval <- function(betatrue, fit, ci_level=80, include = T, ...) {
+diffsig_eval <- function(betatrue, fit, ci_level=80, ...) {
 
   if (class(fit)!="stanfit") {
     stop("fit has to be a stanfit object from rstan package")

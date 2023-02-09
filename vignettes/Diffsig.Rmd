@@ -27,8 +27,11 @@ editor_options:
     wrap: 72
 ---
 
-```{r setup, echo=T, results="hide"}
+```{r setup, echo=F, results="hide"}
 knitr::opts_chunk$set(cache=FALSE, message=FALSE, warning=FALSE)
+```
+
+```{r, echo=T, results="hide"}
 library(diffsig, quietly = T)
 library(rstan, quietly = T)
 ```
