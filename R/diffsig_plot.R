@@ -1,6 +1,5 @@
 #' Plot posterior estimates results from diffsig_fit
 #'
-#' @export
 #' @param fit stan fit object from diffsig_stan
 #' @param pars vector of row numbers to plot from `fit`
 #' @param signature_labels vector of signature labels

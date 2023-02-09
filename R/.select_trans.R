@@ -6,7 +6,7 @@
 #' @param L number of mutation transitions to be reduced to
 #' @return list of subsetted signature matrix C and subsetted count data Y (=list(C,Y))
 #'
-select_trans <- function(Y,C,L) {
+select_trans <- function(Y,C,L,K) {
   ranks <- apply(C, 2, function(col) rank(-col)) # rank from high to low contribution of transitions
   selected_transitions <- c()
 

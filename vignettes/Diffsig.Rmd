@@ -18,7 +18,7 @@ abstract: |
   Diffsig package version: `r packageVersion("diffsig")`
 bibliography: library.bib
 vignette: |
-  %\VignetteIndexEntry{Diffsig - association of risk factors and 
+  %\VignetteIndexEntry{diffsig - association of risk factors and 
   mutational signatures}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::html}
@@ -38,7 +38,7 @@ library(rstan, quietly = T)
 
 # Introduction
 
-*Diffsig* provides Bayesian analysis of the association between risk
+*diffsig* provides Bayesian analysis of the association between risk
 factors and mutational signatures, making use of the Stan and RStan
 software packages for inference [@stan; @rstan].
 
@@ -94,10 +94,14 @@ on the types of risk factors to be included:
 So, for example, if you would like to include 2 continuous variable, you
 would do:
 
-```{r}
+```{r eval=F}
 set.seed(123)
 simdat = simdat_gen(N=N, K=K, truetau=truetau, C=C_k,
            continuous=2, binary=NA, categorical=NA, cat_levels=NA, seed=123)
+```
+
+```{r echo=FALSE}
+data(simdat)
 ```
 
 Or, if you want to include 1 binary and 2 categorical variable with 3
@@ -126,11 +130,11 @@ head(simdat$truebeta)
 ```
 
 ```{r}
-head(simdat$Y)
+head(simdat$Y)[,1:10]
 ```
 
 ```{r}
-head(simdat$X)
+head(simdat$X)[,1:10]
 ```
 
 # Association estimation
@@ -139,9 +143,13 @@ Once we obtain the mutation counts `Y`, risk factors `X`, and mutational
 signatures matrix `C`/`C_K`, we can estimate the association between
 risk factors and mutational signatures using the function `diffsig_fit`.
 
-```{r}
+```{r eval=F}
 fit <- diffsig_fit(X=simdat$X, Y=simdat$Y, C=C_k, beta_sd=0.5,
                    chains=2, cores=2, seed=123)
+```
+
+```{r, echo=F}
+data(fit.rda)
 ```
 
 This runs the hierarchical Bayesian model that yields the posterior
@@ -205,7 +213,7 @@ signatures and `M` risk factors, the rows are labelled with the
 signatures with `signature_labels` and are divided and colored for each
 risk factor with `riskfactor_labels`.
 
-```{r fig.width=3, fig.height=8, fig.align='center'}
+```{r, fig.width=3, fig.height=8, fig.align='center'}
 numpars = prod(dim(simdat$truebeta)) #15
 diffsig_plot(fit, 
              pars=1:numpars, 
@@ -213,6 +221,10 @@ diffsig_plot(fit,
              signature_labels = c("SBS2","SBS3","SBS13"), 
              riskfactor_labels = c("intercept","cont1","cont2"),
              ncol=1, outlist = F)
+```
+
+```{r, echo=F}
+knitr::include_graphics("./figures/plot1.png")
 ```
 
 Each row shows the estimated association between each signature and risk
@@ -232,7 +244,7 @@ In addition,
     specified `ncol`. If set to `TRUE`, the output will be a list of
     individual plots for each risk factor.
 
-```{r fig.height=3, fig.width=9}
+```{r fig.height=3, fig.width=9, eval=F}
 diffsig_plot(fit, 
              pars=1:numpars, 
              ci_level = 80,
@@ -241,7 +253,12 @@ diffsig_plot(fit,
              ncol=3, outlist = F)
 ```
 
-```{r fig.height=3, fig.width=3, fig.align='center'}
+```{r, echo=F}
+knitr::include_graphics("./figures/plot2.png")
+```
+
+
+```{r fig.height=3, fig.width=3, fig.align='center', eval=F}
 diffsig_plot(fit, 
              pars=1:numpars, 
              ci_level = 80,
@@ -250,10 +267,15 @@ diffsig_plot(fit,
              ncol=1, outlist = T)
 ```
 
+```{r echo=F}
+data(p3)
+p
+```
+
 The colors for the segments and estimation points can also be tailored
 based on preference by specifying `colors` and `est_color` parameters.
 
-```{r fig.width=3, fig.height=8, fig.align='center'}
+```{r fig.width=3, fig.height=8, fig.align='center', eval=F}
 diffsig_plot(fit, 
              pars=1:numpars, 
              ci_level = 80,
@@ -263,6 +285,10 @@ diffsig_plot(fit,
              est_color="#F5F3EF",
              ncol=1,
              outlist=FALSE)
+```
+
+```{r echo=F}
+knitr::include_graphics("./figures/plot4.png")
 ```
 
 # Interpreting the results

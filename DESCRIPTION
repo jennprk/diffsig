@@ -13,7 +13,6 @@ Authors@R:
 Description: diffsig allows to test the difference in association between mutational signatures and risk factors based on hierarchical Bayesian Dirichlet-Multinomial modeling.
 License: GPL (>=2)
 Encoding: UTF-8
-VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Biarch: true
@@ -21,14 +20,16 @@ Depends:
     R (>= 3.4.0)
 Imports: 
     methods,
-    knitr,
     ggplot2,
     stats,
     cowplot,
     dirmult,
     fastDummies,
     Rcpp (>= 0.12.0),
-    rstan (>= 2.18.1),
+    rstan (>= 2.18.1)
+Suggests:
+    knitr
+VignetteBuilder: knitr
 LinkingTo: 
     BH (>= 1.66.0),
     Rcpp (>= 0.12.0),
