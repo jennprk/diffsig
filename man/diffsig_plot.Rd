@@ -34,8 +34,6 @@ diffsig_plot(
 \item{outlist}{default FALSE indicates to combine plots for all risk factors into one. outlist=T indicates to output as a list of plots}
 
 \item{ci_level}{numerical value for credible interval percentage (default 80)}
-
-\item{...}{Arguments passed to ggplot}
 }
 \value{
 Diffsig plot

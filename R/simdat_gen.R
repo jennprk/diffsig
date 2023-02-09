@@ -13,7 +13,7 @@
 #' @param seed seed number for random number generate (set.seed)
 #' @import fastDummies
 #' @import dirmult
-#' @importFrom("stats", "rmultinom", "rnbinom", "rnorm", "runif")
+#' @import stats
 #' @return A list of simulated beta, mutational count (Y), and risk factor (X)
 #'
 simdat_gen <- function(N=100,K=5,truetau=100, C,

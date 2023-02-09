@@ -4,18 +4,16 @@
 \alias{diffsig_eval}
 \title{Diffsig coverage and root mean squared error (RMSE) calculation function}
 \usage{
-diffsig_eval(betatrue, fit, ci_level = 80, include = T, ...)
+diffsig_eval(betatrue, fit, ci_level = 80, ...)
 }
 \arguments{
+\item{betatrue}{a vector of true betas}
+
 \item{fit}{a \code{stanfit} object returned by \code{rstan::stan}}
 
+\item{ci_level}{a 2-dimension vector of lower/upper credible interval}
+
 \item{...}{Arguments passed to \code{rstan::stan} (e.g. thin, init, ...).}
-
-\item{truebeta}{a vector of true betas}
-
-\item{coverage}{a 2-dimension vector of lower/upper credible interval}
-
-\item{beta_sd}{standard deviation for sampling hyperparameter beta}
 }
 \value{
 An object of class \code{stanfit} returned by \code{rstan::stan}

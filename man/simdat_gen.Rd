@@ -7,13 +7,13 @@
 simdat_gen(
   N = 100,
   K = 5,
-  L = 96,
   truetau = 100,
   C,
   continuous = NA,
   binary = NA,
   categorical = NA,
   cat_levels = NA,
+  L = 96,
   seed = sample(1:1e+06, 1)
 )
 }
@@ -21,8 +21,6 @@ simdat_gen(
 \item{N}{number of samples, default 100}
 
 \item{K}{number of signatures, default 5}
-
-\item{L}{number of transitions to use, default 96}
 
 \item{truetau}{true value of Dirichlet precision parameter tau, default 100}
 
@@ -36,9 +34,9 @@ simdat_gen(
 
 \item{cat_levels}{vector of number of levels for each categorical variables}
 
-\item{seed}{seed number for random number generate (set.seed)}
+\item{L}{number of transitions to use, default 96}
 
-\item{M}{number of covariates, default 2 (includes intercept)}
+\item{seed}{seed number for random number generate (set.seed)}
 }
 \value{
 A list of simulated beta, mutational count (Y), and risk factor (X)

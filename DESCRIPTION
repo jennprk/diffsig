@@ -21,7 +21,12 @@ Depends:
     R (>= 3.4.0)
 Imports: 
     methods,
+    knitr,
     ggplot2,
+    stats,
+    cowplot,
+    dirmult,
+    fastDummies,
     Rcpp (>= 0.12.0),
     rstan (>= 2.18.1),
 LinkingTo: 
