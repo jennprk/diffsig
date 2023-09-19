@@ -88,7 +88,7 @@ simdat_gen <- function(N=100,K=5,truetau=100, C,
   }
 
   # Generate mutation count Y
-  J <- stats::rnbinom(N, mu=300, size=2) # J - number of mutations for each sample
+  J <- stats::rnbinom(N, mu=160, size=7) # J - number of mutations for each sample
   J[J == 0] <- 1 # remove 0s - 0 represents no mutation, only include samples with mutations
 
   alpha <- t(beta) %*% X # alpha - K vector for each sample used to define its contribution
