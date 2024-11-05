@@ -1,9 +1,9 @@
 #' Hierarchical Bayesian Modeling with Stan
 #'
 #' @export
-#' @param X risk factor matrix (MxN)
-#' @param Y mutational count matrix (96xN)
-#' @param C muational signature matrix (96xK)
+#' @param X risk factor matrix (MxN) - M: no. of risk factors including intercept, N: no. of samples
+#' @param Y (mutational) count matrix (LxN) - L: dimension of count matrix (by default, L=96)
+#' @param C (muational) signature matrix (LxK) - K: no. of signatures
 #' @param beta_sd standard deviation for sampling hyperparameter beta
 #' @param pars desired parameters from `stanfit` to save. Default is "beta" (`pars="beta"`), but can also include parameters such as "tau".
 #' @param include passes on to `include` in `rstan::sampling`. Default set as `TRUE`.
