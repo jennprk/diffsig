@@ -1,7 +1,5 @@
 # Diffsig: Associating Risk Factors with Mutational Signatures
 
-## Introduction and Motivation
-
 Somatic mutations accumulate over an individual’s lifetime due to mutagenic processes such as UV exposure, smoking, etc. These processes leave distinct patterns of mutations in the genome, known as mutational signatures which are used to predict therapy response and to understand the molecular mechanisms driving cancer.
 
 Studies focused on detecting novel signatures based on non-matrix Factorization (NMF) algorithms, but linking underlying biological causes were challenging due to uncertainty in signature contributions (low counts, sequencing coverage, tumor purity, etc.) [3,4,5]
@@ -18,8 +16,22 @@ To address the limitations, we present **Diffsig**, a hierarchical Bayesian Diri
 ## Schematic of **Diffsig** Model
 
 <p align="center">
+
 <img src="https://github.com/jennprk/diffsig/blob/main/vignettes/figures/schematic/schematic.001.png" width="600"/>
+
 </p>
+
+Input Requirements:
+
+1.  mutational signature matrix of interest ($C$), and
+
+2.  risk factor matrix of all samples ($X$) including intercept and risk factor variables of interest, and
+
+3.  mutation count matrix of samples ($Y$) with matching dimensions with $C$ (\# sample $\times$ \# mutational context).
+
+Output of Interest:
+
+Estimated $\beta$ shows the association between risk factors and signatures. Risk factors with high association with a signature of interest can help link the underlying mechanisms cause to the signature.
 
 ## Installation in R
 
